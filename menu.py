@@ -6,6 +6,8 @@ import game
 # Colors
 BLACK   = (   0,   0,   0)
 WHITE   = ( 255, 255, 255)
+GRAY	= (  51,  51,  51)
+YELLOW  = ( 255, 255, 153)
 
 # Screen dimensions
 SCREEN_WIDTH  = 800
@@ -77,16 +79,65 @@ class Menu():
 			text = self.font.render("Quit", True, self.text_color)
 		self.screen.blit(text, [300, 500])
 
-def intro(screen):
+def dialog_box(dialog, screen):
+	""" Pop up a dialogue box on the screen """
+	font = pygame.font.Font('coders_crux.ttf', 32)
+	margin = 10
+	
+	clock = pygame.time.Clock()	
+	
 	done = False
-	clock = pygame.time.Clock()
-	font = pygame.font.Font('kenpixel.ttf', 20)
+	
+	while not done:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT: 
+				done = True 
+		
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_RETURN:
+					done = True					
+				if event.key == pygame.K_ESCAPE:
+					done = True
+	
+		# Make the box
+		square = pygame.Surface([SCREEN_WIDTH - margin * 2, 130])
+		square.fill(BLACK)
+		screen.blit(square, [margin, margin])
+
+		dialog1 = dialog[:60]
+		dialog2 = dialog[60:120]
+		dialog3 = dialog[120:180]
+		dialog4 = dialog[180:240]
+		
+		# Write text in the box
+		text = font.render(dialog1, True, WHITE)
+		screen.blit(text, [margin*2, margin*2])
+		text = font.render(dialog2, True, WHITE)
+		screen.blit(text, [margin*2, margin*2 + 30])
+		text = font.render(dialog3, True, WHITE)
+		screen.blit(text, [margin*2, margin*2 + 60])
+		text = font.render(dialog4, True, WHITE)
+		screen.blit(text, [margin*2, margin*2 + 90])		
+		# 60 fps
+		clock.tick(60)		
+		pygame.display.flip()
+	
+	
+	
+def intro():
+	""" Display the scrolling text intro """
+	screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])	
+
 	x = 0
-	y = 700
+	y = 700	
+	
+	clock = pygame.time.Clock()
 
 	# Load and set up graphics.
 	player_image = pygame.image.load("intro.png").convert()
 	player_image.set_colorkey(WHITE)
+
+	done = False
 	
 	while not done:
 		for event in pygame.event.get(): # User did something
@@ -103,12 +154,12 @@ def intro(screen):
 
 		screen.fill(WHITE) # Draw white background
 
-		screen.blit(player_image, [0, y])	
+		screen.blit(player_image, [x, y])	
 		
 		# text crawls upward
 		y -= 1
 		
-		# 30 fps
+		# 60 fps
 		clock.tick(60)		
 		pygame.display.flip()
 	
@@ -146,9 +197,10 @@ def main():
 				if event.key == pygame.K_RETURN:
 					if menu.get_selection() == 0:
 						print("Start Game!")
-						intro(screen)
+						intro()						
 					if menu.get_selection() == 1:
 						print("Options!")
+						dialog_box("This is a test box. This is a test box. This is a test box. This is a test box. This is a test box. This is a test box. This is a test box. This is a test box. This is a test box. This is a test box. This is a test box. This is a test box. This is a test box. This is a test box. This is a test box. This is a test box.", screen)
 					if menu.get_selection() == 2:
 						done = True
 				if event.key == pygame.K_ESCAPE:
