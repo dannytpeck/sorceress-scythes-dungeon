@@ -76,29 +76,6 @@ class Player(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect()
 		self.rect.y = y
 		self.rect.x = x
-
-	def update(self):
-		""" Animate the player's movement """
-
-		# Cycle through the walking animation
-
-		if self.change_x:
-			pos = self.rect.x
-		else:
-			pos = self.rect.y		
-        
-		if self.direction == "R":
-			frame = (pos // 30) % len(self.walking_frames_r)
-			self.image = self.walking_frames_r[frame]
-		if self.direction == "L":
-			frame = (pos // 30) % len(self.walking_frames_l)
-			self.image = self.walking_frames_l[frame]        
-		if self.direction == "U":
-			frame = (pos // 30) % len(self.walking_frames_u)
-			self.image = self.walking_frames_u[frame]		
-		if self.direction == "D":
-			frame = (pos // 30) % len(self.walking_frames_d)
-			self.image = self.walking_frames_d[frame]		
 		
 	# Player-controlled movement:
 	def go_left(self):
@@ -123,25 +100,11 @@ class Player(pygame.sprite.Sprite):
 				
 	def move(self, walls):
 		""" Move the player. """
-
-		# Move left/right
-		self.rect.x += self.change_x
-
-		# Did this update cause us to hit a wall?
-		block_hit_list = pygame.sprite.spritecollide(self, walls, False)
-		for block in block_hit_list:
-			# If we are moving right, set our right side to the left side of
-			# the item we hit
-			if self.change_x > 0:
-				self.rect.right = block.rect.left
-			else:
-				# Otherwise if we are moving left, do the opposite.
-				self.rect.left = block.rect.right
-
+		
 		# Move up/down
 		self.rect.y += self.change_y
 
-		# Check and see if we hit anything
+		# Did this update cause us to hit a wall?
 		block_hit_list = pygame.sprite.spritecollide(self, walls, False)
 		for block in block_hit_list:
 
@@ -150,26 +113,58 @@ class Player(pygame.sprite.Sprite):
 				self.rect.bottom = block.rect.top
 			else:
 				self.rect.top = block.rect.bottom
+				
+		# Move left/right
+		self.rect.x += self.change_x
+
+		# Did this update cause us to hit a wall?
+		block_hit_list = pygame.sprite.spritecollide(self, walls, False)
+		for block in block_hit_list:
+			# Reset our position based on the left/right of the object.
+			if self.change_x > 0:
+				self.rect.right = block.rect.left
+			else:
+				# Otherwise if we are moving left, do the opposite.
+				self.rect.left = block.rect.right
 
 		# Cycle through the walking animation
-		if self.change_x:
-			pos = self.rect.x
-		else:
-			pos = self.rect.y		
         
-		if self.direction == "R":
-			frame = (pos // 30) % len(self.walking_frames_r)
-			self.image = self.walking_frames_r[frame]
-		if self.direction == "L":
-			frame = (pos // 30) % len(self.walking_frames_l)
-			self.image = self.walking_frames_l[frame]        
+		if self.change_x == 0 and self.change_y:
+			if self.change_y < 0:
+				self.direction = "U"
+			else:
+				self.direction = "D"
+				
+		if self.change_y == 0 and self.change_x:
+			if self.change_x < 0:
+				self.direction = "L"
+			else:
+				self.direction = "R"				
+
+		# Kinda hack-y here, ideally find a better solution.
+		if self.direction == "U" or self.direction == "D":
+			if self.rect.top == 32 or self.rect.bottom == 768:
+				pos = self.rect.x
+			else:
+				pos = self.rect.y
+		else:
+			if self.rect.left == 32 or self.rect.right == 768:
+				pos = self.rect.y
+			else:
+				pos = self.rect.x
+				
 		if self.direction == "U":
 			frame = (pos // 30) % len(self.walking_frames_u)
 			self.image = self.walking_frames_u[frame]		
 		if self.direction == "D":
 			frame = (pos // 30) % len(self.walking_frames_d)
-			self.image = self.walking_frames_d[frame]						
-				
+			self.image = self.walking_frames_d[frame]			
+		if self.direction == "L":
+			frame = (pos // 30) % len(self.walking_frames_l)
+			self.image = self.walking_frames_l[frame]      
+		if self.direction == "R":
+			frame = (pos // 30) % len(self.walking_frames_r)
+			self.image = self.walking_frames_r[frame]			
 			
 def main():
 	""" Main Program """
