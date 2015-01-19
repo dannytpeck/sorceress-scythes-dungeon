@@ -67,23 +67,39 @@ class Room(object):
 
 	""" Each room has a list of walls, enemy sprites, and a grid """
 	wall_list = None
+	loose_wall_list = None
 	enemy_sprites = None	
 	grid = None
+	background = None
+	background_image = None
 	
 	def __init__(self):
 		""" Constructor, create our lists. """
 		self.wall_list = pygame.sprite.Group()
+		self.loose_wall_list = pygame.sprite.Group()
 		self.enemy_sprites = pygame.sprite.Group()
 		self.grid = [[0 for x in range(ROWS)] for y in range(COLUMNS)]
+		self.background = pygame.sprite.Sprite()
 		
 	def draw_grid(self):	
-		""" This method places blocks anywhere a 1 is found in the grid. """
+		""" This method places blocks anywhere a 1 and loose blocks anywhere a 2 is found in the grid. """
+		loose_block_image = pygame.image.load("loosebrick.png").convert()
+		
 		for row in range(ROWS):
 			for column in range(COLUMNS):
+				if self.grid[row][column] == 2:
+					block = Block(row * 32, column * 32)
+					block.image = loose_block_image
+					self.loose_wall_list.add(block)
+				
 				if self.grid[row][column] == 1:
 					block = Block(row * 32, column * 32)
 					self.wall_list.add(block)			
 
+	def clear_room(self):
+		wall_list = None
+		enemy_sprites = None
+		grid = None
 	
 # --- Dungeon Rooms ---	
 
@@ -91,25 +107,51 @@ class Room1(Room):
 	"""This creates all the walls in room 1"""
 	def __init__(self):
 		Room.__init__(self)
-	
-		# Build walls
-		for row in range(11):
-			self.grid[row][0] = 1
-			self.grid[row][24] = 1
+		# Set up background image
+		self.background_image = pygame.image.load("background.png").convert()
+		self.background.image = self.background_image
+		self.background.rect = self.background.image.get_rect()
+		
+		x = y = 0
+		level = [
+			"PPPPPPPPPPPPPPPPPPPPPPPPP",
+			"P    P                  P",
+			"P PP PPPPPPPPPPP PPPPPP P",
+			"P P  P                P P",
+			"P P PPP PPPPPPPPPPPPP P P",
+			"P P P P         P   P P P",
+			"P P P PPPPP P PPPPP P P P",
+			"P P P       P       PPPPPP",
+			"P P P       P       P   P",
+			"P P P PPPPPPPPPPPPP P P P",
+			"P P P             P P P P",
+			"P P P PPPPPPPPPPPPP P P P",
+			"P P P P     P       P P P",
+			"P P PPP     P     P P P P",
+			"P P P       P     P P P P",
+			"P P P P           P P P  ",
+			"P P P P           P P P P",
+			"P P P P           P P P P",
+			"P P P PPPPPPPPPPPPP P P P",
+			"P P P        P      P P P",
+			"P P PPPPPPPP P PPPPPP P P",
+			"P P          P        P P",
+			"P PPPPPPPPPPPPPPPPPPPPP P",
+			"P           P           P",
+			"PPPPPPPPPP  PPPPPPPPPPPPP",]
 
-		for row in range(14,25):
-			self.grid[row][0] = 1
-			self.grid[row][24] = 1			
-			
-		for column in range(11):
-			self.grid[0][column] = 1
-			self.grid[24][column] = 1		
-
-		for column in range(14,25):
-			self.grid[0][column] = 1
-			self.grid[24][column] = 1		
-			
-		self.draw_grid()			
+			# build the level
+		for row in level:
+			for col in row:
+				if col == "P":
+					block = Block(x, y)
+					self.wall_list.add(block)			
+				if col == "E":
+					loose_block = Block(x, y)
+					self.loose_wall_list.add(loose_block)
+				x += 32
+			y += 32
+			x = 0		
 					
 class Room2(Room):
 	"""This creates all the walls in room 2"""
