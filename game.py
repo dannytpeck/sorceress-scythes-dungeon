@@ -1,19 +1,134 @@
-import pygame
-from spritesheet import *
-from rooms import *
-import menu
+# Scythe's Secrets (Working Title)
+# By Danny Peck dannytpeck@gmail.com
+# https://github.com/dannytpeck/scythes-secrets
+# Released under MIT license
 
-# Global constants
+import sys, menu, room, spritesheet, pygame
+from pygame.locals import *
+
+FPS = 60 # frames per second to update the DISPLAYSURF
+WINWIDTH = 400 # width of the program's window, in pixels
+WINHEIGHT = 400 # height in pixels
+HALF_WINWIDTH = int(WINWIDTH / 2)
+HALF_WINHEIGHT = int(WINHEIGHT / 2)
 
 # Colors
 BLACK   = (   0,   0,   0)
 WHITE   = ( 255, 255, 255)
 
-# Screen dimensions
-SCREEN_WIDTH  = 400
-SCREEN_HEIGHT = 400
-HALF_WIDTH = int(SCREEN_WIDTH / 2)
-HALF_HEIGHT = int(SCREEN_HEIGHT / 2)
+
+def main():
+	global FPSCLOCK, DISPLAYSURF
+
+    # Pygame initialization and basic set up of the global variables.
+	pygame.init()
+	FPSCLOCK = pygame.time.Clock()
+
+    # Because the Surface object stored in DISPLAYSURF was returned
+    # from the pygame.display.set_mode() function, this is the
+    # Surface object that is drawn to the actual computer screen
+    # when pygame.display.update() is called.
+	DISPLAYSURF = pygame.display.set_mode((WINWIDTH, WINHEIGHT))	
+	
+	total_level_width  = 800
+	total_level_height = 800
+
+	# Create a camera object
+	camera = Camera(complex_camera, total_level_width, total_level_height)
+
+	# Set the height and width of the DISPLAYSURF
+	DOUBLESCALEDISPLAYSURF = pygame.display.set_mode([total_level_width, total_level_height])
+	# Used for 2x scaling
+	DISPLAYSURF = pygame.Surface((total_level_width / 2, total_level_height / 2)).convert()
+	# DISPLAYSURF = pygame.display.set_mode([total_level_width, total_level_height])
+
+	# Set the title of the window
+	pygame.display.set_caption("Scythe's Secrets")
+	
+	# Create the player object and set starting location
+	player = Player(400, 750)
+	movingsprites = pygame.sprite.Group()
+	movingsprites.add(player)
+
+	# Create the display object
+	display = menu.Display(DISPLAYSURF)
+	
+	# Create all the rooms
+	rooms = []
+	rooms.append(room.Room1())
+	rooms.append(room.Room2())
+	rooms.append(room.Room3())
+	rooms.append(room.Room4())
+	rooms.append(room.Room5())
+	
+	current_room_no = 0
+	current_room = rooms[current_room_no]
+
+	done = False
+
+	while not done:
+
+		# --- Event Processing ---
+		
+		for event in pygame.event.get():
+			# Player clicked the "X" at the corner of the window.
+			if event.type == pygame.QUIT:
+				terminate()
+
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_LEFT:
+					player.go_left()
+				if event.key == pygame.K_RIGHT:
+					player.go_right()
+				if event.key == pygame.K_UP:
+					player.go_up()
+				if event.key == pygame.K_DOWN:
+					player.go_down()
+				if event.key == pygame.K_a:
+					display.dialog_box(["This is a dialog box."], DISPLAYSURF)				
+					player.stop()
+				# debug - if you press S, the player's sprite vanishes
+				if event.key == pygame.K_s:
+					for block in current_room.loose_wall_list:
+						block.kill()
+						
+			if event.type == pygame.KEYUP:
+				if event.key == pygame.K_LEFT and player.change_x < 0:
+					player.change_x = 0
+				if event.key == pygame.K_RIGHT and player.change_x > 0:
+					player.change_x = 0
+				if event.key == pygame.K_UP and player.change_y < 0:
+					player.change_y = 0
+				if event.key == pygame.K_DOWN and player.change_y > 0:
+					player.change_y = 0
+
+		# --- Game Logic ---
+		
+		player.move(current_room)
+		
+		scale = pygame.transform.scale		
+				
+		# --- Drawing ---
+
+		camera.update(player) # Update camera
+
+		# Draw everything else
+		DISPLAYSURF.blit(current_room.background.image, camera.apply(current_room.background))
+		
+		for e in movingsprites:
+			DISPLAYSURF.blit(e.image, camera.apply(e))
+		
+		for e in current_room.wall_list:
+			DISPLAYSURF.blit(e.image, camera.apply(e))
+
+		for e in current_room.loose_wall_list:
+			DISPLAYSURF.blit(e.image, camera.apply(e))			
+			
+		scale(DISPLAYSURF, DOUBLESCALEDISPLAYSURF.get_size(), DOUBLESCALEDISPLAYSURF)			
+			
+		pygame.display.update() # draw DISPLAYSURF to the screen.
+		FPSCLOCK.tick(FPS)
+
 
 class Camera(object):
     def __init__(self, camera_func, width, height):
@@ -29,16 +144,16 @@ class Camera(object):
 def simple_camera(camera, target_rect):
     l, t, _, _ = target_rect
     _, _, w, h = camera
-    return pygame.Rect(-l+HALF_WIDTH, -t+HALF_HEIGHT, w, h)
+    return pygame.Rect(-l+HALF_WINWIDTH, -t+HALF_WINHEIGHT, w, h)
 
 def complex_camera(camera, target_rect):
     l, t, _, _ = target_rect
     _, _, w, h = camera
-    l, t, _, _ = -l+HALF_WIDTH, -t+HALF_HEIGHT, w, h
+    l, t, _, _ = -l+HALF_WINWIDTH, -t+HALF_WINHEIGHT, w, h
 
     l = min(0, l)                           # stop scrolling at the left edge
-    l = max(-(camera.width-SCREEN_WIDTH), l)   # stop scrolling at the right edge
-    t = max(-(camera.height-SCREEN_HEIGHT), t) # stop scrolling at the bottom
+    l = max(-(camera.width-WINWIDTH), l)   # stop scrolling at the right edge
+    t = max(-(camera.height-WINHEIGHT), t) # stop scrolling at the bottom
     t = min(0, t)                           # stop scrolling at the top
     return pygame.Rect(l, t, w, h)
 
@@ -65,7 +180,7 @@ class Player(pygame.sprite.Sprite):
 		super().__init__()
 
 		# Choose a sprite sheet to use
-		sprite_sheet = SpriteSheet("player.png")
+		sprite_sheet = spritesheet.SpriteSheet("player.png")
 
 		# Load all the down facing images into a list
 		image = sprite_sheet.get_image(0, 0, 32, 32)
@@ -217,119 +332,11 @@ class Player(pygame.sprite.Sprite):
 		if self.direction == "R":
 			frame = (pos // 30) % len(self.walking_frames_r)
 			self.image = self.walking_frames_r[frame]			
-			
-def main():
-	""" Main Program """
 
-	# Initialize the Pygame library 
-	pygame.init()
 
-	total_level_width  = 800
-	total_level_height = 800
-
-	# Create a camera object
-	camera = Camera(complex_camera, total_level_width, total_level_height)
-
-	# Set the height and width of the screen
-	doublescreen = pygame.display.set_mode([total_level_width, total_level_height])
-	# Used for 2x scaling
-	screen = pygame.Surface((total_level_width / 2, total_level_height / 2)).convert()
-	# screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
-
-	# Set the title of the window
-	pygame.display.set_caption("Scythe's Secrets")
-	
-	# Create the player object and set starting location
-	player = Player(50, 50)
-	movingsprites = pygame.sprite.Group()
-	movingsprites.add(player)
-
-	# Create the display object
-	display = menu.Display(screen)
-	
-	# Create all the rooms
-	rooms = []
-	rooms.append(Room1())
-	rooms.append(Room2())
-	rooms.append(Room3())
-	rooms.append(Room4())
-	rooms.append(Room5())
-	
-	current_room_no = 0
-	current_room = rooms[current_room_no]
-
-	clock = pygame.time.Clock()
-
-	done = False
-
-	while not done:
-
-		# Limit to 60 fps
-		clock.tick(60)	
-	
-		# --- Event Processing ---
-		
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				done = True
-
-			if event.type == pygame.KEYDOWN:
-				if event.key == pygame.K_LEFT:
-					player.go_left()
-				if event.key == pygame.K_RIGHT:
-					player.go_right()
-				if event.key == pygame.K_UP:
-					player.go_up()
-				if event.key == pygame.K_DOWN:
-					player.go_down()
-				if event.key == pygame.K_a:
-					display.dialog_box(["This is a dialog box."], screen)				
-					player.stop()
-				# debug - if you press S, the player's sprite vanishes
-				if event.key == pygame.K_s:
-					for block in current_room.loose_wall_list:
-						block.kill()
-						
-			if event.type == pygame.KEYUP:
-				if event.key == pygame.K_LEFT and player.change_x < 0:
-					player.change_x = 0
-				if event.key == pygame.K_RIGHT and player.change_x > 0:
-					player.change_x = 0
-				if event.key == pygame.K_UP and player.change_y < 0:
-					player.change_y = 0
-				if event.key == pygame.K_DOWN and player.change_y > 0:
-					player.change_y = 0
-
-		# --- Game Logic ---
-		
-		player.move(current_room)
-		
-		scale = pygame.transform.scale		
-				
-		# --- Drawing ---
-
-		camera.update(player) # Update camera
-
-		# Draw everything else
-		screen.blit(current_room.background.image, camera.apply(current_room.background))
-		
-		for e in movingsprites:
-			screen.blit(e.image, camera.apply(e))
-		
-		for e in current_room.wall_list:
-			screen.blit(e.image, camera.apply(e))
-
-		for e in current_room.loose_wall_list:
-			screen.blit(e.image, camera.apply(e))			
-			
-		scale(screen, doublescreen.get_size(), doublescreen)			
-			
-		#pygame.display.update()			
-			
-		# Go ahead and update the screen with what we've drawn.
-		pygame.display.flip()
-
-	#pygame.quit()
+def terminate():
+    pygame.quit()
+    sys.exit()
 
 if __name__ == "__main__":
     main()
