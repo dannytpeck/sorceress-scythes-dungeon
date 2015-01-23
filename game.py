@@ -41,14 +41,9 @@ def main():
 	# Create a camera object
 	camera = Camera(complex_camera, total_level_width, total_level_height)
 
-	# Set the height and width of the DISPLAYSURF
-	# DOUBLESCALEDISPLAYSURF = pygame.display.set_mode([total_level_width, total_level_height])
-	# Used for 2x scaling
-	# DISPLAYSURF = pygame.Surface((total_level_width / 2, total_level_height / 2)).convert()
-	# DISPLAYSURF = pygame.display.set_mode([total_level_width, total_level_height])
-	
 	# Create the player object and set starting location
 	player = Player(400, 750)
+
 	movingsprites = pygame.sprite.Group()
 	movingsprites.add(player)
 
@@ -58,6 +53,7 @@ def main():
 	# Create all the rooms
 	rooms = []
 	rooms.append(room.Room1())
+	rooms.append(room.Room2())
 	rooms[0].build_room()
 	
 	current_room_no = 0
@@ -97,7 +93,7 @@ def main():
 						current_room.build_room()
 
 				if event.key == pygame.K_f:
-					player.paint_skill(current_room)
+					player.paint_skill(current_room, DISPLAYSURF)
 						
 			if event.type == pygame.KEYUP:
 				if event.key == pygame.K_LEFT and player.change_x < 0:
@@ -111,33 +107,43 @@ def main():
 
 		# --- Game Logic ---
 		
-		player.move(current_room)
-		
-		# scale = pygame.transform.scale		
-				
-		# --- Drawing ---
-
+		player.move(current_room)	
 		camera.update(player) # Update camera
 
-		# Draw everything else
-		#DISPLAYSURF.blit(current_room.background.image, camera.apply(current_room.background))
+        # If the player gets to the edge of the room, go to the next room
+		if player.rect.y < 0:
+			player.rect.y = total_level_height-5
+			current_room = rooms[0]
+			current_room.build_room()
 		
-		#DISPLAYSURF.fill(BLACK)
+		if player.rect.y > total_level_height:
+			player.rect.y = 5
+			current_room = rooms[1]
+			current_room.build_room()
+		
+		# --- Drawing ---		
 
 		for e in current_room.floor_list:
 			DISPLAYSURF.blit(e.image, camera.apply(e))
 
 		for e in movingsprites:
 			DISPLAYSURF.blit(e.image, camera.apply(e))			
-			
+
 		for e in current_room.wall_list:
 			DISPLAYSURF.blit(e.image, camera.apply(e))
 
-		for e in current_room.loose_block_list:
-			DISPLAYSURF.blit(e.image, camera.apply(e))			
+		if player.skillsprites:
+			now = pygame.time.get_ticks()
+			if now - player.last_skill_use >= player.skill_cooldown:
+				for e in player.skillsprites:
+					e.kill()
+			for e in player.skillsprites:
+				DISPLAYSURF.blit(e.image, camera.apply(e))					
 			
-		# scale(DISPLAYSURF, DOUBLESCALEDISPLAYSURF.get_size(), DOUBLESCALEDISPLAYSURF)			
-			
+		if current_room.loose_block_list:
+			for e in current_room.loose_block_list:
+				DISPLAYSURF.blit(e.image, camera.apply(e))			
+	
 		pygame.display.update() # redraw DISPLAYSURF to the screen.
 
 		FPSCLOCK.tick(FPS)
