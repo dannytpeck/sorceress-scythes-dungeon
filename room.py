@@ -130,13 +130,9 @@ class Room(object):
 
 
 class Room1(Room):
-	"""This creates all the walls in room 1"""
+	"""This class builds the first room"""
 	def __init__(self):
 		Room.__init__(self)
-		# Set up background image
-		#self.background_image = pygame.image.load("background.png").convert()
-		#self.background.image = self.background_image
-		#self.background.rect = self.background.image.get_rect()
 	
 	def build_room(self):
 		x = y = 0
@@ -167,7 +163,57 @@ class Room1(Room):
 			"P                       P",			
 			"PPPPPPPPPPP   PPPPPPPPPPP",]
 
-			# build the level
+		# build the level
+		for row in level:
+			for col in row:			
+				floor = Floor(x, y)
+				self.floor_list.add(floor)
+				if col == "P":
+					wall = Wall(x, y)
+					self.wall_list.add(wall)
+				if col == "L":
+					loose_block = Loose_Block(x, y)
+					self.loose_block_list.add(loose_block)
+				x += BLOCKSIZE
+			y += BLOCKSIZE
+			x = 0
+
+			
+class Room2(Room):
+	"""This class builds the second room"""
+	def __init__(self):
+		Room.__init__(self)
+	
+	def build_room(self):
+		x = y = 0
+		level = [
+			"PPPPPPPPPPP   PPPPPPPPPPP",
+			"PPPPPPPPPPP   PPPPPPPPPPP",
+			"P                       P",
+			"P                       P",
+			"P                       P",
+			"P                       P",
+			"P     PPPPPP PPPPPP     P",
+			"P     P           P     P",
+			"P     P           P     P",
+			"P     P           P     P",
+			"P     P           P     P",
+			"P     P           P     P",
+			"P     P           P     P",
+			"P     P           P     P",
+			"P     P           P     P",
+			"P     P           P     P",
+			"P     P           P     P",
+			"P     P           P     P",
+			"P     P           P     P",
+			"P     PPPPPP PPPPPP     P",
+			"P                       P",
+			"P                       P",
+			"P                       P",
+			"P                       P",			
+			"PPPPPPPPPPPPPPPPPPPPPPPPP",]
+
+		# build the level
 		for row in level:
 			for col in row:			
 				floor = Floor(x, y)
