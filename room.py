@@ -1,4 +1,12 @@
-import pygame
+"""
+   Scythe's Secrets (Working Title)
+   By Danny Peck dannytpeck@gmail.com
+   https://github.com/dannytpeck/scythes-secrets
+
+   Dungeon Room File
+"""
+
+import random, pygame
 
 # Global constants
 
@@ -14,39 +22,27 @@ YELLOW  = ( 255, 255,   0)
 CRIMSON = (  35,   0,   0)
 
 # Screen dimensions
-SCREEN_WIDTH  = 800
-SCREEN_HEIGHT = 800
+WINWIDTH  = 800
+WINHEIGHT = 800
 
-BLOCKSIZE = 40
+BLOCKSIZE = 64
 
-ROWS = int(SCREEN_HEIGHT / BLOCKSIZE)
-COLUMNS = int(SCREEN_WIDTH / BLOCKSIZE)
+ROWS = int(WINHEIGHT / BLOCKSIZE)
+COLUMNS = int(WINWIDTH / BLOCKSIZE)
 
 # Load graphics
 pygame.init()
 
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT)) # change to the real resolution
+screen = pygame.display.set_mode((WINWIDTH, WINHEIGHT)) # change to the real resolution
 
 class Wall(pygame.sprite.Sprite):
-	"""This class represents walls in the dungeon"""
+	"""This class represents wall blocks in the dungeon"""
 
-	def __init__(self, x, y, width, height, color):
-		""" Constructor function """
-
-		# Call the parent's constructor
-		super().__init__()
-
-		# Make a wall, of the size specified in the parameters
-		self.image = pygame.Surface([width, height])
-		self.image.fill(color)
-
-		# Make our top-left corner the passed-in location.
-		self.rect = self.image.get_rect()
-		self.rect.y = y
-		self.rect.x = x
-
-class Block(pygame.sprite.Sprite):
-	"""This class represents blocks in the dungeon"""
+	# Build an array containing the Surface objects returned by pygame.image.load() 
+	dark_brick_walls = [pygame.image.load('walls/brick_dark0.png').convert(),
+						pygame.image.load('walls/brick_dark1.png').convert(),
+						pygame.image.load('walls/brick_dark2.png').convert(),
+						pygame.image.load('walls/brick_dark3.png').convert()]
 
 	def __init__(self, x, y):
 		""" Constructor function """
@@ -54,185 +50,134 @@ class Block(pygame.sprite.Sprite):
 		# Call the parent's constructor
 		super().__init__()
 
-		# Set enemy to use wall image
-		block_image = pygame.image.load("brick.png").convert()
-		self.image = block_image
+		# Set the appearance of the wall block
+		wall_index = random.randint(0,3)
+		wall_image = self.dark_brick_walls[wall_index]
+		self.image = wall_image
 
 		# Make our top-left corner the passed-in location.
 		self.rect = self.image.get_rect()
 		self.rect.y = y
 		self.rect.x = x		
+
+class Loose_Block(pygame.sprite.Sprite):
+	"""This class represents loose blocks in the dungeon"""
+
+	# Build an array containing the Surface objects returned by pygame.image.load() 
+	loose_blocks = [pygame.image.load('blocks/stone_dark0.png').convert()]
+
+	def __init__(self, x, y):
+		""" Constructor function """
+
+		# Call the parent's constructor
+		super().__init__()
+
+		# Set the appearance of the wall block
+		loose_block_index = 0
+		loose_block_image = self.loose_blocks[loose_block_index]
+		self.image = loose_block_image
+
+		# Make our top-left corner the passed-in location.
+		self.rect = self.image.get_rect()
+		self.rect.y = y
+		self.rect.x = x	
+		
+class Floor(pygame.sprite.Sprite):
+	"""This class represents floor blocks in the dungeon, which will display in the background"""
+
+	# Build an array containing the Surface objects returned by pygame.image.load() 
+	grey_dirt_floors = [pygame.image.load('floors/grey_dirt0.png').convert(),
+						pygame.image.load('floors/grey_dirt1.png').convert(),
+						pygame.image.load('floors/grey_dirt2.png').convert(),
+						pygame.image.load('floors/grey_dirt3.png').convert(),
+						pygame.image.load('floors/grey_dirt4.png').convert()]
+
+	def __init__(self, x, y):
+		""" Constructor function """
+
+		# Call the parent's constructor
+		super().__init__()
+
+		# Set the appearance of the wall block
+		floor_index = random.randint(0,4)
+		floor_image = self.grey_dirt_floors[floor_index]
+		self.image = floor_image
+
+		# Make our top-left corner the passed-in location.
+		self.rect = self.image.get_rect()
+		self.rect.y = y
+		self.rect.x = x				
 		
 class Room(object):
 	""" Base class for all rooms. """
 
-	""" Each room has a list of walls, enemy sprites, and a grid """
+	""" Each room has a list of wall and floor sprites """
 	wall_list = None
-	loose_wall_list = None
-	enemy_sprites = None	
-	grid = None
+	floor_list = None
 	background = None
 	background_image = None
-	
+
 	def __init__(self):
 		""" Constructor, create our lists. """
 		self.wall_list = pygame.sprite.Group()
-		self.loose_wall_list = pygame.sprite.Group()
-		self.enemy_sprites = pygame.sprite.Group()
-		self.grid = [[0 for x in range(ROWS)] for y in range(COLUMNS)]
+		self.floor_list = pygame.sprite.Group()
+		self.loose_block_list = pygame.sprite.Group()
+		#self.grid = [[0 for x in range(ROWS)] for y in range(COLUMNS)]
 		self.background = pygame.sprite.Sprite()
-		
-	def draw_grid(self):	
-		""" This method places blocks anywhere a 1 and loose blocks anywhere a 2 is found in the grid. """
-		loose_block_image = pygame.image.load("loosebrick.png").convert()
-		
-		for row in range(ROWS):
-			for column in range(COLUMNS):
-				if self.grid[row][column] == 2:
-					block = Block(row * BLOCKSIZE, column * BLOCKSIZE)
-					block.image = loose_block_image
-					self.loose_wall_list.add(block)
-				
-				if self.grid[row][column] == 1:
-					block = Block(row * BLOCKSIZE, column * BLOCKSIZE)
-					self.wall_list.add(block)			
 
 	def clear_room(self):
 		wall_list = None
-		enemy_sprites = None
-		grid = None
-	
-# --- Dungeon Rooms ---	
+
 
 class Room1(Room):
 	"""This creates all the walls in room 1"""
 	def __init__(self):
 		Room.__init__(self)
 		# Set up background image
-		self.background_image = pygame.image.load("background.png").convert()
-		self.background.image = self.background_image
-		self.background.rect = self.background.image.get_rect()
-		
+		#self.background_image = pygame.image.load("background.png").convert()
+		#self.background.image = self.background_image
+		#self.background.rect = self.background.image.get_rect()
+	
+	def build_room(self):
 		x = y = 0
 		level = [
-			"PPPPPPPPPPPPPPPPPPPP",
-			"P                  P",
-			"P PP PPPPPPPPPPP PPP",
-			"P P  P             P",
-			"P P PPP PPPPPPPPPPPP",
-			"P P P P         P  P",
-			"P P P PPPPP P PPPPPP",
-			"P P P       P      P",
-			"P P P       P      P",
-			"P P P  PPPPPPPPPPPPP",
-			"P P P              P",
-			"P P P  PPPPPPPPPPPPP",
-			"P P P P     P      P",
-			"P P P P     P      P",
-			"P P P       P     PP",
-			"P P P P             ",
-			"P P P P           PP",
-			"P P P P           PP",
-			"P P P PPP  PPPPPPPPP",
-			"PPPPPPPPP  PPPPPPPPP",]
+			"PPPPPPPPPPPPPPPPPPPPPPPPP",
+			"P                       P",
+			"P PPPPPPPPPPPPPPPPPPPPP P",
+			"P P                   P P",
+			"P P PPPPPPPPPPPPPPPPP P P",
+			"P P P               P P P",
+			"P P P PPPPPP PPPPPP P P P",
+			"P P P P           P P P P",
+			"P P P P           P P P P",
+			"P P P P           P P P P",
+			"P P P P           P P P P",
+			"P P P P           P P P P",
+			"P P P P           P P P P",
+			"P P P P           P P P P",
+			"P P P P           P P P P",
+			"P P P               P P P",
+			"P P   P           P   P P",
+			"P PPPPP     L     PPPPP P",
+			"P                       P",
+			"P                       P",
+			"P                       P",
+			"P                       P",
+			"P                       P",
+			"P                       P",			
+			"PPPPPPPPPPP   PPPPPPPPPPP",]
 
 			# build the level
 		for row in level:
-			for col in row:
+			for col in row:			
+				floor = Floor(x, y)
+				self.floor_list.add(floor)
 				if col == "P":
-					block = Block(x, y)
-					self.wall_list.add(block)			
-				if col == "E":
-					loose_block = Block(x, y)
-					self.loose_wall_list.add(loose_block)
+					wall = Wall(x, y)
+					self.wall_list.add(wall)
+				if col == "L":
+					loose_block = Loose_Block(x, y)
+					self.loose_block_list.add(loose_block)
 				x += BLOCKSIZE
 			y += BLOCKSIZE
 			x = 0		
-					
-class Room2(Room):
-	"""This creates all the walls in room 2"""
-	def __init__(self):
-		Room.__init__(self)
-
-		# Build walls
-		for row in range(20):
-			self.grid[row][0] = 1
-			self.grid[row][19] = 1
-			
-		for column in range(9):
-			self.grid[0][column] = 1
-			self.grid[19][column] = 1		
-
-		for column in range(11,20):
-			self.grid[0][column] = 1
-			self.grid[19][column] = 1	
-		
-		self.draw_grid()	
-			
-
-class Room3(Room):
-	"""This creates all the walls in room 3"""
-	def __init__(self):
-		Room.__init__(self)
-
-		# Build walls
-		for row in range(20):
-			self.grid[row][0] = 1
-			self.grid[row][19] = 1
-			
-		for column in range(9):
-			self.grid[0][column] = 1
-			self.grid[19][column] = 1		
-
-		for column in range(11,20):
-			self.grid[0][column] = 1
-			self.grid[19][column] = 1	
-		
-		self.draw_grid()	
-
-		for x in range(100, 800, 100):
-			for y in range(100, 800, 200):
-				wall = Wall(x, y, 20, 50, RED)
-				self.wall_list.add(wall)
-
-class Room4(Room):
-	"""This creates all the walls in room 4"""
-	def __init__(self):
-		Room.__init__(self)
- 
-		# Build walls
-		for row in range(20):
-			self.grid[row][0] = 1
-			self.grid[row][19] = 1
-			
-		for column in range(9):
-			self.grid[0][column] = 1
-			self.grid[19][column] = 1		
-
-		for column in range(11,20):
-			self.grid[0][column] = 1
-			self.grid[19][column] = 1	
-		
-		self.draw_grid()		
-
-class Room5(Room):
-	"""This creates all the walls in room 4"""
-	def __init__(self):
-		Room.__init__(self)
-
-		# Build walls
-		for row in range(20):
-			self.grid[row][0] = 1
-
-		for row in range(9):
-			self.grid[row][19] = 1
-
-		for row in range(11,20):
-			self.grid[row][19] = 1	
-			
-		for column in range(20):
-			self.grid[0][column] = 1
-			self.grid[19][column] = 1		
-        
-		self.draw_grid()
-			
