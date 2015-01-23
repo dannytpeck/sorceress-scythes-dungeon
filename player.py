@@ -35,6 +35,9 @@ class Player(pygame.sprite.Sprite):
 
 		# Set beginning mana to 5
 		self.mana = 5
+		self.skillsprites = pygame.sprite.Group()
+		self.last_skill_use = pygame.time.get_ticks()
+		self.skill_cooldown = 500
 		
 		# Choose a sprite sheet to use
 		sprite_sheet = SpriteSheet("player.png")
@@ -85,6 +88,7 @@ class Player(pygame.sprite.Sprite):
 		# Create rect for player sprite, set it to 28px x 28px
 		# self.rect = pygame.Rect(x, y, 31, 31)
 		
+
 	# Player-controlled movement:
 	speed = 5
 	
@@ -196,24 +200,36 @@ class Player(pygame.sprite.Sprite):
 			self.image = self.walking_frames_r[frame]			
 	
 	# Block removal ability
-	def paint_skill(self, room):
-		
-		# Create an invisible paintbrush sprite for collision with other sprites
-		paintbrush = pygame.sprite.Sprite()
-		# Make the paintbrush to the right of the player and 15x15 in size.
-		paintbrush.rect = pygame.Rect(self.rect.x + 60, self.rect.y + 30, 15, 15)
-		
+	def paint_skill(self, room, screen):
+		# Check to see if the player has enough mana to use the skill
 		if self.mana:
-			# Test for collisions with the wall list, destroy walls
-			block_hit_list = pygame.sprite.spritecollide(paintbrush, room.wall_list, True)
-			self.mana -= 1
+			now = pygame.time.get_ticks()
+			if now - self.last_skill_use >= self.skill_cooldown:
+				self.last_skill_use = now
+		
+				# Create an invisible paintbrush sprite for collision with other sprites
+				paintbrush = SkillSprite(self.rect.x + 60, self.rect.y + 15)
+
+				# Set the appearance of the sprite that the skill 'paints' on the rune
+				paintbrush.image = pygame.image.load('blocks/paint_rune0.png').convert()
+	
+				# Make the paintbrush to the right of the player and 5x5 in size.
+				paintbrush.rect = pygame.Rect(self.rect.x + 60, self.rect.y + 15, 5, 5)
+	
+				# Test for collisions with the wall list, destroy walls
+				block_hit_list = pygame.sprite.spritecollide(paintbrush, room.wall_list, True)
+			
+				# Reduce mana by 1
+				self.mana -= 1
+	
+				self.skillsprites.add(paintbrush)	
 		else:
 			print("Out of mana!")
 			
 		# Change collided blocks into a different wall appearance.
 		#for block in block_hit_list:
 		#	block_image = pygame.image.load('loosebrick.png').convert()
-		#	block.image = block_image			
+		#	block.image = block_image
 
 	# Ability to push loose blocks around
 	def build_skill(self, room):
@@ -243,6 +259,23 @@ class Player(pygame.sprite.Sprite):
 			if self.direction == "R":
 				block.rect.x += 64
 
+				
+class SkillSprite(pygame.sprite.Sprite):
+	"""This class represents sprites created by skills"""
+
+	def __init__(self, x, y):
+		# Call the parent's constructor
+		super().__init__()
+		self.last = pygame.time.get_ticks()
+		self.cooldown = 300
+	
+	def use():
+		now = pygame.time.get_ticks()
+		if now - self.last >= self.cooldown:
+			self.last = now
+			spawn_rune()
+
+		
 class SpriteSheet(object):
     """ Class used to grab images out of a sprite sheet. """
     # This points to our sprite sheet image
