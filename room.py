@@ -60,7 +60,7 @@ class Wall(pygame.sprite.Sprite):
 		self.rect.y = y
 		self.rect.x = x		
 
-class Loose_Block(pygame.sprite.Sprite):
+class LooseBlock(pygame.sprite.Sprite):
 	"""This class represents loose blocks in the dungeon"""
 
 	# Build an array containing the Surface objects returned by pygame.image.load() 
