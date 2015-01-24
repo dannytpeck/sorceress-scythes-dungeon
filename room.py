@@ -173,7 +173,7 @@ class Room1(Room):
 					wall = Wall(x, y)
 					self.wall_list.add(wall)
 				if col == "L":
-					loose_block = Loose_Block(x, y)
+					loose_block = LooseBlock(x, y)
 					self.loose_block_list.add(loose_block)
 				x += BLOCKSIZE
 			y += BLOCKSIZE
