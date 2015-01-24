@@ -7,148 +7,183 @@
 """
 
 import pygame, sys, menu, room
-from player import *
 
-FPS = 60 # frames per second to update the DISPLAYSURF
-WINWIDTH = 800 # width of the program's window, in pixels
-WINHEIGHT = 800 # height in pixels
-HALF_WINWIDTH = int(WINWIDTH / 2)
-HALF_WINHEIGHT = int(WINHEIGHT / 2)
+from constants import *
+from player import Player
 
-# Colors
-BLACK   = (   0,   0,   0)
-WHITE   = ( 255, 255, 255)
-
-
-def main():
-    # Pygame initialization and basic set up of the global variables.
-	pygame.init()
-	FPSCLOCK = pygame.time.Clock()
-
-    # Because the Surface object stored in DISPLAYSURF was returned
-    # from the pygame.display.set_mode() function, this is the
-    # Surface object that is drawn to the actual computer screen
-    # when pygame.display.update() is called.
-	DISPLAYSURF = pygame.display.set_mode((WINWIDTH, WINHEIGHT))	
-
-	# Set the title of the window
-	pygame.display.set_caption("Scythe's Secrets")
-	BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
-	
-	total_level_width  = 1600
-	total_level_height = 1600
-
-	# Create a camera object
-	camera = Camera(complex_camera, total_level_width, total_level_height)
-
-	# Create the player object and set starting location
-	player = Player(400, 750)
-
-	movingsprites = pygame.sprite.Group()
-	movingsprites.add(player)
-
-	# Create the display object
-	display = menu.Display(DISPLAYSURF)
-	
-	# Create all the rooms
-	rooms = []
-	rooms.append(room.Room1())
-	rooms.append(room.Room2())
-	rooms[0].build_room()
-	
-	current_room_no = 0
-	current_room = rooms[current_room_no]
-
-	done = False
-
-	while not done:
-
-		# --- Event Processing ---
+class Game(object):
+	''' The game object. Controls rendering the game and moving the player.
+	'''
+	def __init__(self):
+		''' Sets up the initial game board, with the player at a set position.
+			Once everything is set up, starts the game.
+		'''
+		pygame.display.set_caption("Scythe's Secrets")
+		self.screen = pygame.display.set_mode((WINWIDTH, WINHEIGHT))
+		self.font = pygame.font.SysFont(None, 48)
+		self.small_font = pygame.font.SysFont(None, 20)
+		self.player = Player(400, 750)
+		self.current_room = room.Room1()
+		self.clock = pygame.time.Clock()
+		# Create a camera object
+		self.camera = Camera(complex_camera, TOTAL_LEVEL_WIDTH, TOTAL_LEVEL_HEIGHT)
+		self.message = "Welcome to Scythe's Secrets!"
+		self.display_alert = False
+		self.run()
 		
-		for event in pygame.event.get():
-			# Player clicked the "X" at the corner of the window.
-			if event.type == pygame.QUIT:
-				terminate()
-
-			if event.type == pygame.KEYDOWN:
-				if event.key == pygame.K_LEFT:
-					player.go_left()
-				if event.key == pygame.K_RIGHT:
-					player.go_right()
-				if event.key == pygame.K_UP:
-					player.go_up()
-				if event.key == pygame.K_DOWN:
-					player.go_down()
-
-				# Player abilities, still being debugged	
-				if event.key == pygame.K_a:
-					player.build_skill(current_room)
-				
-				# Debug ability: destroy/create all walls in the room.
-				if event.key == pygame.K_s:
-					if current_room.wall_list:
-						for block in current_room.wall_list:
-							block.kill()
-					else:
-						current_room.build_room()
-
-				if event.key == pygame.K_f:
-					player.paint_skill(current_room, DISPLAYSURF)
-						
-			if event.type == pygame.KEYUP:
-				if event.key == pygame.K_LEFT and player.change_x < 0:
-					player.change_x = 0
-				if event.key == pygame.K_RIGHT and player.change_x > 0:
-					player.change_x = 0
-				if event.key == pygame.K_UP and player.change_y < 0:
-					player.change_y = 0
-				if event.key == pygame.K_DOWN and player.change_y > 0:
-					player.change_y = 0
-
-		# --- Game Logic ---
+	def draw_alert(self, alert):
+		''' Draws the alert box at the top 
+		'''
+		window = pygame.image.load('message window.png').convert()
+		message = self.font.render(self.message, True, WHITE)
 		
-		player.move(current_room)	
-		camera.update(player) # Update camera
+		self.screen.blit(window, (0, 0))
+		self.screen.blit(message, (15, 15))
 
-        # If the player gets to the edge of the room, go to the next room
-		if player.rect.y < 0:
-			player.rect.y = total_level_height-5
-			current_room = rooms[0]
-			current_room.build_room()
+	def draw_darkness(self):
+		pass
+		''' Draws the darkness and shadows on the board. 0 is dark, 1 is in shadows,
+	    	    2 is fully revealed.
 		
-		if player.rect.y > total_level_height:
-			player.rect.y = 5
-			current_room = rooms[1]
-			current_room.build_room()
+		for row in range(ROWS):
+			for col in range(COLUMNS):
+				if self.map.cleared[row][col] == 0:
+					pygame.draw.rect(self.screen, BLACK, (row*TILE_SIZE, col*TILE_SIZE, TILE_SIZE, TILE_SIZE)) 	
+				if self.map.cleared[row][col] == 1:
+					shadow = pygame.Surface((TILE_SIZE, TILE_SIZE))
+					shadow.set_alpha(200)
+					shadow.fill(BLACK)
+					self.screen.blit(shadow, (row*TILE_SIZE, col*TILE_SIZE))
+		'''
+
 		
-		# --- Drawing ---		
+	def draw_floor(self):
+		for i in self.current_room.floor_list:
+			self.screen.blit(i.image, self.camera.apply(i))
+		
+	def draw_walls(self):
+		for i in self.current_room.wall_list:
+			self.screen.blit(i.image, self.camera.apply(i))
+		
+	def run(self):
+		pygame.init()
 
-		for e in current_room.floor_list:
-			DISPLAYSURF.blit(e.image, camera.apply(e))
+		# Because the Surface object stored in DISPLAYSURF was returned
+		# from the pygame.display.set_mode() function, this is the
+		# Surface object that is drawn to the actual computer screen
+		# when pygame.display.update() is called.
+		DISPLAYSURF = self.screen
+		
+		# Set the title of the window
+		pygame.display.set_caption("Scythe's Secrets")
+		BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
 
-		for e in movingsprites:
-			DISPLAYSURF.blit(e.image, camera.apply(e))			
+		# Create the player object and set starting location
+		player = Player(400, 750)
 
-		for e in current_room.wall_list:
-			DISPLAYSURF.blit(e.image, camera.apply(e))
+		movingsprites = pygame.sprite.Group()
+		movingsprites.add(player)
+		
+		# Create all the rooms
+		rooms = []
+		rooms.append(room.Room1())
+		rooms.append(room.Room2())
+		rooms[0].build_room()
 
-		if player.skillsprites:
-			now = pygame.time.get_ticks()
-			if now - player.last_skill_use >= player.skill_cooldown:
-				for e in player.skillsprites:
-					e.kill()
-			for e in player.skillsprites:
-				DISPLAYSURF.blit(e.image, camera.apply(e))					
+		self.current_room.build_room()
+		
+		done = False
+		
+		while not done:
+
+			# --- Event Processing ---
 			
-		if current_room.loose_block_list:
-			for e in current_room.loose_block_list:
-				DISPLAYSURF.blit(e.image, camera.apply(e))			
+			for event in pygame.event.get():
+				# Player clicked the "X" at the corner of the window.
+				if event.type == pygame.QUIT:
+					sys.exit()
+
+				if event.type == pygame.KEYDOWN:
+					if event.key == pygame.K_LEFT:
+						player.go_left()
+					if event.key == pygame.K_RIGHT:
+						player.go_right()
+					if event.key == pygame.K_UP:
+						player.go_up()
+					if event.key == pygame.K_DOWN:
+						player.go_down()
+
+					# Player abilities, still being debugged	
+					if event.key == pygame.K_a:
+						player.build_skill(self.current_room)
+					
+					if event.key == pygame.K_s:
+						self.message = "This is a sample dialog box!"
+
+					if event.key == pygame.K_d:
+						if self.display_alert == False:
+							self.display_alert = True
+						else:
+							self.display_alert = False
+						
+					if event.key == pygame.K_f:
+						player.paint_skill(self.current_room, DISPLAYSURF)
+							
+				if event.type == pygame.KEYUP:
+					if event.key == pygame.K_LEFT and player.change_x < 0:
+						player.change_x = 0
+					if event.key == pygame.K_RIGHT and player.change_x > 0:
+						player.change_x = 0
+					if event.key == pygame.K_UP and player.change_y < 0:
+						player.change_y = 0
+					if event.key == pygame.K_DOWN and player.change_y > 0:
+						player.change_y = 0
+
+			# --- Game Logic ---
+
+			player.move(self.current_room)	
+			self.camera.update(player) # Update camera
+
+			# If the player gets to the edge of the room, go to the next room
+			if player.rect.y < 0:
+				player.rect.y = TOTAL_LEVEL_HEIGHT-5
+				self.current_room = rooms[0]
+				self.current_room.build_room()
+			
+			if player.rect.y > TOTAL_LEVEL_HEIGHT:
+				player.rect.y = 5
+				self.current_room = rooms[1]
+				self.current_room.build_room()
+			
+			# --- Drawing ---		
+
+			self.draw_floor()
+
+			for e in movingsprites:
+				DISPLAYSURF.blit(e.image, self.camera.apply(e))			
+
+			self.draw_walls()	
+				
+			if player.skillsprites:
+				now = pygame.time.get_ticks()
+				if now - player.last_skill_use >= player.skill_cooldown:
+					for e in player.skillsprites:
+						e.kill()
+				for e in player.skillsprites:
+					DISPLAYSURF.blit(e.image, self.camera.apply(e))					
+				
+			if self.current_room.loose_block_list:
+				for e in self.current_room.loose_block_list:
+					DISPLAYSURF.blit(e.image, self.camera.apply(e))			
+
+			if self.display_alert == True:
+				self.draw_alert("Hello.")
+				
+			pygame.display.update() # redraw DISPLAYSURF to the screen.
+
+			self.clock.tick(FPS)
+		
 	
-		pygame.display.update() # redraw DISPLAYSURF to the screen.
-
-		FPSCLOCK.tick(FPS)
-
-
 class Camera(object):
     def __init__(self, camera_func, width, height):
         self.camera_func = camera_func
@@ -175,11 +210,11 @@ def complex_camera(camera, target_rect):
     t = max(-(camera.height-WINHEIGHT), t)  # stop scrolling at the bottom
     t = min(0, t)                           # stop scrolling at the top
     return pygame.Rect(l, t, w, h)
-
-
-def terminate():
-    pygame.quit()
-    sys.exit()
+	
+def main():
+	while 1:
+		pygame.init()
+		game = Game()
 
 if __name__ == "__main__":
     main()
