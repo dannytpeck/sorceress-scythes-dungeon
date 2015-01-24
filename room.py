@@ -8,32 +8,11 @@
 
 import random, pygame
 
-# Global constants
-
-# Colors
-BLACK   = (   0,   0,   0)
-WHITE   = ( 255, 255, 255)
-RED     = ( 255,   0,   0)
-GREEN   = (   0, 255,   0)
-BLUE    = (   0,   0, 255)
-CYAN    = (   0, 255, 255)
-MAGENTA = ( 255,   0, 255)
-YELLOW  = ( 255, 255,   0)
-CRIMSON = (  35,   0,   0)
-
-# Screen dimensions
-WINWIDTH  = 800
-WINHEIGHT = 800
-
-BLOCKSIZE = 64
-
-ROWS = int(WINHEIGHT / BLOCKSIZE)
-COLUMNS = int(WINWIDTH / BLOCKSIZE)
+from constants import *
 
 # Load graphics
 pygame.init()
-
-screen = pygame.display.set_mode((WINWIDTH, WINHEIGHT)) # change to the real resolution
+screen = pygame.display.set_mode((WINWIDTH, WINHEIGHT))
 
 class Wall(pygame.sprite.Sprite):
 	"""This class represents wall blocks in the dungeon"""
@@ -111,21 +90,41 @@ class Floor(pygame.sprite.Sprite):
 class Room(object):
 	""" Base class for all rooms. """
 
-	""" Each room has a list of wall and floor sprites """
-	wall_list = None
-	floor_list = None
-	loose_block_list = None
-	background = None
-	background_image = None
+	#""" Each room has a list of wall and floor sprites """
+	#wall_list = None
+	#floor_list = None
+	#loose_block_list = None
+	#TOTAL_LEVEL_WIDTH = 0
+	#TOTAL_LEVEL_HEIGHT = 0
+	#background = None
+	#background_image = None
 
 	def __init__(self):
 		""" Constructor, create our lists. """
 		self.wall_list = pygame.sprite.Group()
 		self.floor_list = pygame.sprite.Group()
 		self.loose_block_list = pygame.sprite.Group()
+
+		self.total_width = 0
+		self.total_height = 0
+		self.rows = 0
+		self.columns = 0
+		
+		self.level = ["PPP",
+					  "P P",
+					  "PPP"]
+
 		#self.grid = [[0 for x in range(ROWS)] for y in range(COLUMNS)]
-		self.background = pygame.sprite.Sprite()
-	
+		#self.background = pygame.sprite.Sprite()
+
+	def calculate_grid(self):
+		self.rows = len(self.level)
+		self.columns = len(self.level[0])
+		self.total_width = self.columns * TILESIZE
+		self.total_height = self.rows * TILESIZE
+		#Sanity check
+		print(self.total_width, self.total_height, self.rows, self.columns)
+		
 	def clear_room(self):
 		wall_list = None
 
@@ -133,11 +132,10 @@ class Room(object):
 class Room1(Room):
 	"""This class builds the first room"""
 	def __init__(self):
-		Room.__init__(self)
-	
-	def build_room(self):
-		x = y = 0
-		level = [
+		# Call the parent's constructor
+		super().__init__()
+
+		self.level = [
 			"PPPPPPPPPPPPPPPPPPPPPPPPP",
 			"P                       P",
 			"P PPPPPPPPPPPPPPPPPPPPP P",
@@ -164,8 +162,13 @@ class Room1(Room):
 			"P                       P",			
 			"PPPPPPPPPPP   PPPPPPPPPPP",]
 
+		self.calculate_grid()
+		
+	def build_room(self):
+		x = y = 0
+
 		# build the level
-		for row in level:
+		for row in self.level:
 			for col in row:			
 				floor = Floor(x, y)
 				self.floor_list.add(floor)
@@ -175,8 +178,8 @@ class Room1(Room):
 				if col == "L":
 					loose_block = LooseBlock(x, y)
 					self.loose_block_list.add(loose_block)
-				x += BLOCKSIZE
-			y += BLOCKSIZE
+				x += TILESIZE
+			y += TILESIZE
 			x = 0
 
 			
@@ -184,38 +187,29 @@ class Room2(Room):
 	"""This class builds the second room"""
 	def __init__(self):
 		Room.__init__(self)
-	
+
+		self.level = [
+			"PPPPP   PPPPP",
+			"P           P",
+			"P           P",
+			"P       PPPPP",
+			"P           P",
+			"P           P",
+			"P           P",
+			"PPPPP       P",
+			"P           P",
+			"P           P",
+			"P           P",
+			"P           P",
+			"PPPPPPPPPPPPP",]
+
+		self.calculate_grid()	
+		
 	def build_room(self):
 		x = y = 0
-		level = [
-			"PPPPPPPPPPP   PPPPPPPPPPP",
-			"PPPPPPPPPPP   PPPPPPPPPPP",
-			"P                       P",
-			"P                       P",
-			"P                       P",
-			"P                       P",
-			"P     PPPPPP PPPPPP     P",
-			"P     P           P     P",
-			"P     P           P     P",
-			"P     P           P     P",
-			"P     P           P     P",
-			"P     P           P     P",
-			"P     P           P     P",
-			"P     P           P     P",
-			"P     P           P     P",
-			"P     P           P     P",
-			"P     P           P     P",
-			"P     P           P     P",
-			"P     P           P     P",
-			"P     PPPPPP PPPPPP     P",
-			"P                       P",
-			"P                       P",
-			"P                       P",
-			"P                       P",			
-			"PPPPPPPPPPPPPPPPPPPPPPPPP",]
-
+		
 		# build the level
-		for row in level:
+		for row in self.level:
 			for col in row:			
 				floor = Floor(x, y)
 				self.floor_list.add(floor)
@@ -225,6 +219,6 @@ class Room2(Room):
 				if col == "L":
 					loose_block = Loose_Block(x, y)
 					self.loose_block_list.add(loose_block)
-				x += BLOCKSIZE
-			y += BLOCKSIZE
+				x += TILESIZE
+			y += TILESIZE
 			x = 0		
