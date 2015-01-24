@@ -114,6 +114,7 @@ class Room(object):
 	""" Each room has a list of wall and floor sprites """
 	wall_list = None
 	floor_list = None
+	loose_block_list = None
 	background = None
 	background_image = None
 
@@ -124,7 +125,7 @@ class Room(object):
 		self.loose_block_list = pygame.sprite.Group()
 		#self.grid = [[0 for x in range(ROWS)] for y in range(COLUMNS)]
 		self.background = pygame.sprite.Sprite()
-
+	
 	def clear_room(self):
 		wall_list = None
 
