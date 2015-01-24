@@ -23,15 +23,21 @@ class Game(object):
 		self.font = pygame.font.SysFont(None, 48)
 		self.small_font = pygame.font.SysFont(None, 20)
 		self.player = Player(400, 750)
-		self.current_room = room.Room1()
+
+		# Create all the rooms
+		self.rooms = []
+		self.rooms.append(room.Room1())
+		self.rooms.append(room.Room2())
+		self.current_room = self.rooms[0]
+		
 		self.clock = pygame.time.Clock()
 		# Create a camera object
-		self.camera = Camera(complex_camera, TOTAL_LEVEL_WIDTH, TOTAL_LEVEL_HEIGHT)
+		self.camera = Camera(complex_camera, self.current_room.total_width, self.current_room.total_height)
 		self.message = "Welcome to Scythe's Secrets!"
 		self.display_alert = False
 		self.run()
 		
-	def draw_alert(self, alert):
+	def draw_alert(self):
 		''' Draws the alert box at the top 
 		'''
 		window = pygame.image.load('message window.png').convert()
@@ -84,12 +90,7 @@ class Game(object):
 		movingsprites = pygame.sprite.Group()
 		movingsprites.add(player)
 		
-		# Create all the rooms
-		rooms = []
-		rooms.append(room.Room1())
-		rooms.append(room.Room2())
-		rooms[0].build_room()
-
+		# Build the current room
 		self.current_room.build_room()
 		
 		done = False
@@ -145,16 +146,30 @@ class Game(object):
 			self.camera.update(player) # Update camera
 
 			# If the player gets to the edge of the room, go to the next room
-			if player.rect.y < 0:
-				player.rect.y = TOTAL_LEVEL_HEIGHT-5
-				self.current_room = rooms[0]
+			if self.current_room == self.rooms[1] and player.rect.y < 0:
+				# empty the sprite groups
+				self.current_room.wall_list.empty()
+				self.current_room.floor_list.empty()
+				# change room and build it
+				self.current_room = self.rooms[0]
 				self.current_room.build_room()
-			
-			if player.rect.y > TOTAL_LEVEL_HEIGHT:
+				self.camera = Camera(complex_camera, self.current_room.total_width, self.current_room.total_height)		
+				# set player location on the new map
+				player.rect.x = self.current_room.total_width // 2
+				player.rect.y = self.current_room.total_height-5
+
+			if player.rect.y > self.current_room.total_height:
+				# empty the sprite groups
+				self.current_room.wall_list.empty()
+				self.current_room.floor_list.empty()
+				# change room and build it
+				self.current_room = self.rooms[1]
+				self.current_room.build_room()
+				self.camera = Camera(complex_camera, self.current_room.total_width, self.current_room.total_height)		
+				# set player location on the new map
+				player.rect.x = self.current_room.total_width // 2
 				player.rect.y = 5
-				self.current_room = rooms[1]
-				self.current_room.build_room()
-			
+
 			# --- Drawing ---		
 
 			self.draw_floor()
@@ -164,6 +179,10 @@ class Game(object):
 
 			self.draw_walls()	
 				
+			if self.current_room.loose_block_list:
+				for e in self.current_room.loose_block_list:
+					DISPLAYSURF.blit(e.image, self.camera.apply(e))		
+
 			if player.skillsprites:
 				now = pygame.time.get_ticks()
 				if now - player.last_skill_use >= player.skill_cooldown:
@@ -172,12 +191,8 @@ class Game(object):
 				for e in player.skillsprites:
 					DISPLAYSURF.blit(e.image, self.camera.apply(e))					
 				
-			if self.current_room.loose_block_list:
-				for e in self.current_room.loose_block_list:
-					DISPLAYSURF.blit(e.image, self.camera.apply(e))			
-
 			if self.display_alert == True:
-				self.draw_alert("Hello.")
+				self.draw_alert()
 				
 			pygame.display.update() # redraw DISPLAYSURF to the screen.
 
