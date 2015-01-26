@@ -145,6 +145,7 @@ class Game(object):
 			player.move(self.current_room)	
 			self.camera.update(player) # Update camera
 
+			'''
 			# If the player gets to the edge of the room, go to the next room
 			if self.current_room == self.rooms[1] and player.rect.y < 0:
 				# empty the sprite groups
@@ -169,7 +170,8 @@ class Game(object):
 				# set player location on the new map
 				player.rect.x = self.current_room.total_width // 2
 				player.rect.y = 5
-
+			'''
+				
 			# --- Drawing ---		
 
 			self.draw_floor()

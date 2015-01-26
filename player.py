@@ -8,12 +8,12 @@
 
 import pygame
 
-# Define some colors
-BLACK = (  0,   0,   0)
+from constants import *
+
 
 class Player(pygame.sprite.Sprite):
 	""" This class is for the player-controlled character. """
-
+	
 	# Set speed vector
 	change_x = 0
 	change_y = 0
@@ -31,7 +31,7 @@ class Player(pygame.sprite.Sprite):
 		""" Constructor function """
 
 		# Call the parent's constructor
-		super().__init__()
+		pygame.sprite.Sprite.__init__(self)
 
 		# Set beginning mana to 5
 		self.mana = 5
@@ -265,7 +265,7 @@ class SkillSprite(pygame.sprite.Sprite):
 
 	def __init__(self, x, y):
 		# Call the parent's constructor
-		super().__init__()
+		pygame.sprite.Sprite.__init__(self)
 		self.last = pygame.time.get_ticks()
 		self.cooldown = 300
 	
@@ -299,8 +299,8 @@ class SpriteSheet(object):
         # Copy the sprite from the large sheet onto the smaller image
         image.blit(self.sprite_sheet, (0, 0), (x, y, width, height))
 
-        # Assuming black works as the transparent color
-        image.set_colorkey(BLACK)
+        # Assuming magenta works as the transparent color
+        image.set_colorkey(MAGENTA)
 
         # Return the image
         return image

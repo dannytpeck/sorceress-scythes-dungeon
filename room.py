@@ -6,13 +6,24 @@
    Dungeon Room File
 """
 
-import random, pygame
+import pygame, random
 
 from constants import *
+from player import SpriteSheet
 
 # Load graphics
 pygame.init()
 screen = pygame.display.set_mode((WINWIDTH, WINHEIGHT))
+
+# Create a library of sprites to use
+SPRITEHEIGHT = 64
+SPRITEWIDTH = 64
+balladier_tileset = {}
+
+sprite_sheet = SpriteSheet("tileset.png")
+
+balladier_tileset['grass'] = sprite_sheet.get_image(0, 0, SPRITEWIDTH, SPRITEHEIGHT)
+balladier_tileset['shrub'] = sprite_sheet.get_image(SPRITEWIDTH, 0, SPRITEWIDTH, SPRITEHEIGHT)
 
 class Wall(pygame.sprite.Sprite):
 	"""This class represents wall blocks in the dungeon"""
@@ -27,12 +38,12 @@ class Wall(pygame.sprite.Sprite):
 		""" Constructor function """
 
 		# Call the parent's constructor
-		super().__init__()
+		pygame.sprite.Sprite.__init__(self)
 
 		# Set the appearance of the wall block
-		wall_index = random.randint(0,3)
-		wall_image = self.dark_brick_walls[wall_index]
-		self.image = wall_image
+		'''wall_index = random.randint(0,3)
+		wall_image = self.dark_brick_walls[wall_index]'''
+		self.image = balladier_tileset['shrub']
 
 		# Make our top-left corner the passed-in location.
 		self.rect = self.image.get_rect()
@@ -75,12 +86,12 @@ class Floor(pygame.sprite.Sprite):
 		""" Constructor function """
 
 		# Call the parent's constructor
-		super().__init__()
+		pygame.sprite.Sprite.__init__(self)
 
 		# Set the appearance of the wall block
-		floor_index = random.randint(0,4)
-		floor_image = self.grey_dirt_floors[floor_index]
-		self.image = floor_image
+		'''floor_index = random.randint(0,4)
+		floor_image = self.grey_dirt_floors[floor_index]'''
+		self.image = balladier_tileset['grass']
 
 		# Make our top-left corner the passed-in location.
 		self.rect = self.image.get_rect()
@@ -133,34 +144,34 @@ class Room1(Room):
 	"""This class builds the first room"""
 	def __init__(self):
 		# Call the parent's constructor
-		super().__init__()
+		Room.__init__(self)
 
 		self.level = [
-			"PPPPPPPPPPPPPPPPPPPPPPPPP",
-			"P                       P",
-			"P PPPPPPPPPPPPPPPPPPPPP P",
-			"P P                   P P",
-			"P P PPPPPPPPPPPPPPPPP P P",
-			"P P P               P P P",
-			"P P P PPPPPP PPPPPP P P P",
-			"P P P P           P P P P",
-			"P P P P           P P P P",
-			"P P P P           P P P P",
-			"P P P P           P P P P",
-			"P P P P           P P P P",
-			"P P P P           P P P P",
-			"P P P P           P P P P",
-			"P P P P           P P P P",
-			"P P P               P P P",
-			"P P   P           P   P P",
-			"P PPPPP     L     PPPPP P",
-			"P                       P",
-			"P                       P",
-			"P                       P",
-			"P                       P",
-			"P                       P",
-			"P                       P",			
-			"PPPPPPPPPPP   PPPPPPPPPPP",]
+			"HHHHHHHHHHHHHHHHHHHHHHHHH",
+			"H    H                  H",
+			"H HH HHHHHHHHHHH HHHHHH H",
+			"H H  H                H H",
+			"H H HHH HHHHHHHHHHHHH H H",
+			"H H H H         H   H H H",
+			"H H H HHHHH H HHHHH H H H",
+			"H H H       H       HHHHH",
+			"H H H       H       H   H",
+			"H H H HHHHHHHHHHHHH H H H",
+			"H H H             H H H H",
+			"H H H HHHHHHHHHHHHH H H H",
+			"H H H H     H       H H H",
+			"H H HHH     H     H H H H",
+			"H H H       H     H H H H",
+			"H H H H           H H H H",
+			"H H H H           H H H  ",
+			"H H H H           H H H H",
+			"H H H HHHHHHHHHHHHH H H H",
+			"H H H        H      H H H",
+			"H H HHHHHHHH H HHHHHH H H",
+			"H H          H        H H",
+			"H HHHHHHHHHHHHHHHHHHHHH H",
+			"H           H           H",
+			"HHHHHHHHHH  HHHHHHHHHHHHH"]
 
 		self.calculate_grid()
 		
@@ -172,7 +183,7 @@ class Room1(Room):
 			for col in row:			
 				floor = Floor(x, y)
 				self.floor_list.add(floor)
-				if col == "P":
+				if col == "H":
 					wall = Wall(x, y)
 					self.wall_list.add(wall)
 				if col == "L":
