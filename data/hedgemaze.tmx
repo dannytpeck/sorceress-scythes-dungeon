@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="32" tileheight="32" nextobjectid="38">
+ <tileset firstgid="1" name="Revolution_Grasslands" tilewidth="32" tileheight="32">
+  <image source="revolution_grasslands.png" trans="a349a4" width="320" height="608"/>
+ </tileset>
+ <tileset firstgid="191" name="revolution_snow" tilewidth="32" tileheight="32">
+  <image source="revolution_snow.png" trans="a349a4" width="352" height="448"/>
+ </tileset>
+ <tileset firstgid="345" name="revolution_town" tilewidth="32" tileheight="32">
+  <image source="revolution_town.png" trans="a349a4" width="352" height="831"/>
+ </tileset>
+ <layer name="under0" width="50" height="50">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC6XXXbLjNgyEUcn6eZjnLGUWm0VkkclUmVXH34Unuc4Dy7IogiDQaDTPbdvOf8bx/L0Z+/P99RyP5zfn8/nI/PrGsezsrDmZP5/r7ufczvxae/Ptzu/jufbX81+sX2vO7Lt8PZnT7/v5fOCPfi3fj2H92vfcXn3Wp3XmHbvO6/uOfeO07Nzba4zXefXv2F7Pts7n+fWnObi219gb/5s5v1tx0p8Te+57vvldfouF5eMVO9r197F9zb/PKybFt/Nrbp1FXK99/Ka+m+8je1hfJ88rdjc2Lmx3btl3/ZU1+q6vy/9lw5hf22vsxZ258PzNjedZ3/z5P8bC3fptHsWoGBPz+mQ8V7yuDOvOnH3qf+t7ym/rqfktnl1bzhAj17D3p7lw/5UP4yQnihPrSa6SA+RU83Cy78XaT3C17Ldmin3n/V4MyufyrfF33T58t87z3XOI3/Ki9tf/tY910DjYP81De4VYbo/6LpYaB/Ngb2qvk+/f9Y3y3Blb1lxj8d1cyO/iwfy0n9mrxJMYlJ/Ld8bMXHnGT7hK29UyV/br2Y1xdc8ZG3LVtX3Nj/rrE64qR5lr/6urqonOPK91x/Yao6kvnln/Ke+qTcvr1R3Fn3rOWFeL9Fs1g/Mrh5+cwxgtX34+x1SDPzPar6e6825Q7bv2sBY/qY9qY3tEOdne1d93efE+0fqX9x757r+MagGH/aIxlavloOp/tU7vOfJa7wbTvdE4qDXVIPrUHlW+ubJ3NX+1jfpLrrJ/mLdqULFozqvTpjnjIHbVsNaRcReb1cs9h/2nNd4hdx7b1zN3zynf4tme1V5QnpJ3W1OefdIRxb+xth4aK3HziO2V4z1r3/G+8dm3V/+skQkLnqd91HuR/GHvqo+PwZa5kr/a15oDcWQvlcetFXXdxGeO1ro6Qdza8+R2x+ONHfFwv9m3GnWdo/cysXTyzn2ridTi1T3r+ccwqpvcr9pNzW9OJ0zqTzlQnJbnqk96V/g1/8cw9nx/b6/xFGPtse5nDBpTcfe7ftk7knVR/mqfubPeXHoPMG7W0ITvI/tMvvad+7Sntbf1WZ3Z/N9Z0z4hX73jqd/p12n4vTatK3G85xvfyRH1pbk2BtX7HfJ79cd0p7gyp+4uD3afie+0Ze9p/Uw95B6GmJt8MXdX9va9mqK9ftJ19j653V5TrV1s3bGlX1NPL/f439xMde5Zyl9+O+mZnqF9QH1Qrmg/N0dyp/prwqp5lpeMt/rJurfm3mnh1p15bzx8N/URMTTpOu31LNXhrdPqOvVD+dS59gT70tR/7szLVROn9zzlvOKtnC/OPac9ez1Xw1z5X23VOKw9xJQ1+2+16vnbH/1tDYn38s2aN7diRVtq5WrUK/97lxFL1bXeA+SJPf+tDf1y7nizT9+X9+wH7flTP9fn3lHMh/UjzuXzcql6pLV6Y98epz/tdxOfFePVKhMPif/yufxkPXkP6L7WZLmrNdX8aWfPN+ZMjJib1kHr0droHaY+q0ftzd6F7IfOtXdVS7iveGqs9LkarDqm3K3es2fozznYkw/0055kjVePlIvFnnvab9ufpnWNcbW95xOr5YXWqLbMjXcZfW9tOb9vr/jXhn2vXGE9nm++k8/L396FzuzV2EzcO+1xbl9j2t6zzlXfi79iWU5sP6mGK0/WHzHQPiL/9T4pxtdZzOekSetXNWDzqF+te7Fl/U65XmfvHaHre+8r58r373TI1BvlwdbRMawVu9U9ail5wlrxvfh07/JW+9mE02qCjmowfdG2eZWj5PRqI89UvSmnaV9+PbO2PaR1PHF9NcMafwMQ9x8VECcAAA==
+  </data>
+ </layer>
+ <layer name="under1" width="50" height="50">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+2UQQvCMAxGs7+t3gVBPU7xpB48TA/+QyMYWopMJIEm7ffgwQZj5K1dT0R0a8Aj+2zAd0cLSMeW3bH7irNokI6RPVCd9ZFvqNFDx2jwDnTYgY4EOuxARwIddqAjgQ47Wuk4sxelHjom9q7UQ4cF6PBF5I5Ndh25I0fmlrPvWnEWDdIhZ9+j4iwaou6jEnT4Ah2+QIcv0FGXdXEftaMEHb5Ahy966ijPOI/0tB4R6L1j7p9ZDETLj6vh97v+ff4bva+HNyJ35Hs7ckfOC99L8u4QJwAA
+  </data>
+ </layer>
+ <layer name="under2" width="50" height="50">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3LMREAMAgEsMd8sY0GeozJngQAAAAAAAAAAPj1KunaH+DeAALoiFsQJwAA
+  </data>
+ </layer>
+ <layer name="over0" width="50" height="50">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3YMQ5EABiEUZe1GrI0u0HDzc0ZkPwi7yVfP/U0DQAAAMA5bfqkrnrIRd80pql6yEVzWtJaPQQAOK1PQ/WIG/zSv3rEDba0V48AAHgRf+KzvPVPPACifnTUECcAAA==
+  </data>
+ </layer>
+ <objectgroup name="walls" visible="0">
+  <object id="1" x="1056" y="128" width="544" height="480"/>
+  <object id="6" x="0" y="27" width="28" height="861"/>
+  <object id="7" x="29" y="28" width="1397" height="31"/>
+  <object id="11" x="672" y="1088" width="128" height="96"/>
+  <object id="12" x="1056" y="1088" width="128" height="96"/>
+  <object id="14" x="672" y="1376" width="128" height="96"/>
+  <object id="15" x="1056" y="1376" width="128" height="96"/>
+  <object id="20" x="288" y="1312" width="32" height="32"/>
+  <object id="21" x="448" y="1440" width="32" height="32"/>
+  <object id="24" x="1472" y="1088" width="32" height="32"/>
+  <object id="25" x="1504" y="1536" width="32" height="32"/>
+  <object id="26" x="1504" y="704" width="32" height="32"/>
+  <object id="27" x="896" y="960">
+   <polyline points="0,0 0,32"/>
+  </object>
+  <object id="28" x="992" y="960">
+   <polyline points="0,0 0,32"/>
+  </object>
+  <object id="31" x="69" y="120" width="85" height="707"/>
+ </objectgroup>
+</map>
