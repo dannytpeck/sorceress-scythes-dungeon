@@ -132,7 +132,7 @@ class Player(pygame.sprite.Sprite):
 		self.rect.topleft = self._position
 		self.feet.midbottom = self.rect.midbottom
 
-		'''# Cycle through the walking animation
+		# Cycle through the walking animation
 		if self.velocity[0] == 0 and self.velocity[1]:
 			if self.velocity[1] < 0:
 				self.direction = "U"
@@ -144,7 +144,6 @@ class Player(pygame.sprite.Sprite):
 				self.direction = "L"
 			else:
 				self.direction = "R"						
-		'''
 		
 		if self.direction == "U" or self.direction == "D":
 			pos = self.rect.y
@@ -195,7 +194,7 @@ class Game(object):
                 object.x, object.y,
                 object.width, object.height))
 
-        # create new data source for pyscroll
+    # create new data source for pyscroll
         map_data = pyscroll.data.TiledMapData(tmx_data)
 
         w, h = screen.get_size()
@@ -235,39 +234,37 @@ class Game(object):
                 self.running = False
                 break
 
-            elif event.type == KEYDOWN:
-                if event.key == K_ESCAPE:
-                    self.running = False
-                    break
+            if event.type == KEYDOWN:	
+				if event.key == K_UP:
+					self.player.velocity[1] = -PLAYER_MOVE_SPEED
+					self.player.direction = "U"
+				if event.key == K_DOWN:
+					self.player.velocity[1] = PLAYER_MOVE_SPEED
+					self.player.direction = "D"
+				if event.key == K_LEFT:
+					self.player.velocity[0] = -PLAYER_MOVE_SPEED
+					self.player.direction = "L"
+				if event.key == K_RIGHT:
+					self.player.velocity[0] = PLAYER_MOVE_SPEED
+					self.player.direction = "R"
 
+            if event.type == KEYUP:
+				if event.key == pygame.K_LEFT and self.player.velocity[0] < 0:
+					self.player.velocity[0] = 0
+				if event.key == pygame.K_RIGHT and self.player.velocity[0] > 0:
+					self.player.velocity[0] = 0
+				if event.key == pygame.K_UP and self.player.velocity[1] < 0:
+					self.player.velocity[1] = 0
+				if event.key == pygame.K_DOWN and self.player.velocity[1] > 0:
+					self.player.velocity[1] = 0
+					
             # this will be handled if the window is resized
             elif event.type == VIDEORESIZE:
                 init_screen(event.w, event.h)
                 self.map_layer.set_size((event.w / 2, event.h / 2))
 
             event = pygame.event.poll()
-
-        # using get_pressed is slightly less accurate than testing for events
-        # but is much easier to use.
-        pressed = pygame.key.get_pressed()
-        if pressed[K_UP]:
-            self.player.velocity[1] = -PLAYER_MOVE_SPEED
-            self.player.direction = "U"
-        elif pressed[K_DOWN]:
-            self.player.velocity[1] = PLAYER_MOVE_SPEED
-            self.player.direction = "D"
-        else:
-            self.player.velocity[1] = 0
-
-        if pressed[K_LEFT]:
-            self.player.velocity[0] = -PLAYER_MOVE_SPEED
-            self.player.direction = "L"
-        elif pressed[K_RIGHT]:
-            self.player.velocity[0] = PLAYER_MOVE_SPEED
-            self.player.direction = "R"
-        else:
-            self.player.velocity[0] = 0
-
+			
     def update(self, dt):
         """ Tasks that occur over time should be handled here
         """
