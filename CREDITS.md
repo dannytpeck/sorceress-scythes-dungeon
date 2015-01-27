@@ -2,8 +2,6 @@
 By Danny Peck dannytpeck@gmail.com<br>
 https://github.com/dannytpeck/scythes-secrets
 
-<br>
-
 ##### Libraries
 * PyTMX by Bitcraft https://github.com/bitcraft/pytmx
 
