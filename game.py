@@ -7,20 +7,14 @@
 """
 
 import pygame, pytmx, pyscroll, os.path, sys
+from pygame.locals import *
 
 sys.path.append("classes")
 
 import spritesheet
 
-from pyscroll.util import PyscrollGroup
-from pygame.locals import *
-
-
-# define configuration variables here
-RESOURCES_DIR = 'data'
-
-PLAYER_MOVE_SPEED = 200            # pixels per second
-MAP_FILENAME = 'hedgemaze.tmx'
+from menu import *
+from constants import *
 
 # used for 2x scaling
 temp_surface = None
@@ -283,6 +277,10 @@ class Game(object):
         clock = pygame.time.Clock()
         fps = 60
         scale = pygame.transform.scale
+
+        menu = Menu(screen)
+        menu.run()
+        
         self.running = True
 
         try:
