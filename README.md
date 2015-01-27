@@ -1,4 +1,4 @@
-# scythes-secrets
+# Scythe's Secrets
 
 A dungeon crawling game made with Python 2.7 and Pygame 1.9
 
