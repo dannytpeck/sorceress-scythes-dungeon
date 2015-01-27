@@ -6,232 +6,310 @@
    Main Game File
 """
 
-import pygame, sys, menu, room
+import pygame, pytmx, pyscroll, os.path, sys
 
-from constants import *
-from player import Player
+sys.path.append("classes")
+
+import spritesheet
+
+from pyscroll.util import PyscrollGroup
+from pygame.locals import *
+
+
+# define configuration variables here
+RESOURCES_DIR = 'data'
+
+PLAYER_MOVE_SPEED = 200            # pixels per second
+MAP_FILENAME = 'hedgemaze.tmx'
+
+# used for 2x scaling
+temp_surface = None
+
+# simple wrapper to keep the screen resizeable
+def init_screen(width, height):
+    global temp_surface
+    screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+    temp_surface = pygame.Surface((width / 2, height / 2)).convert()
+    return screen
+
+# make loading maps a little easier
+def get_map(filename):
+    return os.path.join(RESOURCES_DIR, filename)
+
+# make loading images a little easier
+def load_image(filename):
+    return pygame.image.load(os.path.join(RESOURCES_DIR, filename))
+
+
+class Player(pygame.sprite.Sprite):
+	""" Our Player Character
+
+	The Player Character has three collision rects, one for the whole sprite "rect" and
+	"old_rect", and another to check collisions with walls, called "feet".
+
+	The position list is used because pygame rects are inaccurate for
+	positioning sprites; because the values they get are 'rounded down' to
+	as integers, the sprite would move faster moving left or up.
+
+	Feet is 1/2 as wide as the normal rect, and 8 pixels tall.  This size size
+	allows the top of the sprite to overlap walls.
+
+	There is also an old_rect that is used to reposition the sprite if it
+	collides with level walls.
+	"""
+	# This holds the walk animation images for the player.
+	walking_frames_l = []
+	walking_frames_r = []
+	walking_frames_u = []
+	walking_frames_d = []	
+
+	# Player facing direction defaults to right.
+	direction = "R"
+
+	def __init__(self):
+		pygame.sprite.Sprite.__init__(self)
+
+		self.velocity = [0, 0]
+		self._position = [0, 0]
+		self._old_position = self.position
+
+		# Choose a sprite sheet to use
+		sprite_sheet = spritesheet.SpriteSheet("player.png")
+
+		SPRITEHEIGHT = 32
+		SPRITEWIDTH = 32
+	
+		# Load all the down facing images into a list
+		image = sprite_sheet.get_image(0, 0, SPRITEWIDTH, SPRITEHEIGHT)
+		self.walking_frames_d.append(image)
+		image = sprite_sheet.get_image(SPRITEWIDTH, 0, SPRITEWIDTH, SPRITEHEIGHT)
+		self.walking_frames_d.append(image)
+		image = sprite_sheet.get_image(SPRITEWIDTH*2, 0, SPRITEWIDTH, SPRITEHEIGHT)
+		self.walking_frames_d.append(image)
+
+		# Load all the left facing images into a list
+		image = sprite_sheet.get_image(0, SPRITEHEIGHT, SPRITEWIDTH, SPRITEHEIGHT)
+		self.walking_frames_l.append(image)
+		image = sprite_sheet.get_image(SPRITEWIDTH, SPRITEHEIGHT, SPRITEWIDTH, SPRITEHEIGHT)
+		self.walking_frames_l.append(image)
+		image = sprite_sheet.get_image(SPRITEWIDTH*2, SPRITEHEIGHT, SPRITEWIDTH, SPRITEHEIGHT)
+		self.walking_frames_l.append(image)
+
+		# Load all the right facing images into a list
+		image = sprite_sheet.get_image(0, SPRITEHEIGHT*2, SPRITEWIDTH, SPRITEHEIGHT)
+		self.walking_frames_r.append(image)
+		image = sprite_sheet.get_image(SPRITEWIDTH, SPRITEHEIGHT*2, SPRITEWIDTH, SPRITEHEIGHT)
+		self.walking_frames_r.append(image)
+		image = sprite_sheet.get_image(SPRITEWIDTH*2, SPRITEHEIGHT*2, SPRITEWIDTH, SPRITEHEIGHT)
+		self.walking_frames_r.append(image)
+
+		# Load all the up facing images into a list
+		image = sprite_sheet.get_image(0, SPRITEHEIGHT*3, SPRITEWIDTH, SPRITEHEIGHT)
+		self.walking_frames_u.append(image)
+		image = sprite_sheet.get_image(SPRITEWIDTH, SPRITEHEIGHT*3, SPRITEWIDTH, SPRITEHEIGHT)
+		self.walking_frames_u.append(image)
+		image = sprite_sheet.get_image(SPRITEWIDTH*2, SPRITEHEIGHT*3, SPRITEWIDTH, SPRITEHEIGHT)
+		self.walking_frames_u.append(image)		
+
+		# Set the image the player starts with (right by default)
+		self.image = self.walking_frames_r[0]			
+
+		self.rect = self.image.get_rect()
+		self.feet = pygame.Rect(0, 0, self.rect.width * .5, 8)
+		
+	@property
+	def position(self):
+		return list(self._position)
+
+	@position.setter
+	def position(self, value):
+		self._position = list(value)
+
+	def update(self, dt):
+		self._old_position = self._position[:]
+		self._position[0] += self.velocity[0] * dt
+		self._position[1] += self.velocity[1] * dt
+		self.rect.topleft = self._position
+		self.feet.midbottom = self.rect.midbottom
+
+		'''# Cycle through the walking animation
+		if self.velocity[0] == 0 and self.velocity[1]:
+			if self.velocity[1] < 0:
+				self.direction = "U"
+			else:
+				self.direction = "D"
+				
+		if self.velocity[1] == 0 and self.velocity[0]:
+			if self.velocity[0] < 0:
+				self.direction = "L"
+			else:
+				self.direction = "R"						
+		'''
+		
+		if self.direction == "U" or self.direction == "D":
+			pos = self.rect.y
+		else:
+			pos = self.rect.x	
+	
+		if self.direction == "U":
+			frame = (pos // 30) % len(self.walking_frames_u)
+			self.image = self.walking_frames_u[frame]		
+		if self.direction == "D":
+			frame = (pos // 30) % len(self.walking_frames_d)
+			self.image = self.walking_frames_d[frame]			
+		if self.direction == "L":
+			frame = (pos // 30) % len(self.walking_frames_l)
+			self.image = self.walking_frames_l[frame]      
+		if self.direction == "R":
+			frame = (pos // 30) % len(self.walking_frames_r)
+			self.image = self.walking_frames_r[frame]	
+
+	def move_back(self, dt):
+		""" If called after an update, the sprite can move back
+		"""
+		self._position = self._old_position
+		self.rect.topleft = self._position
+		self.feet.midbottom = self.rect.midbottom
 
 class Game(object):
-	''' The game object. Controls rendering the game and moving the player.
-	'''
-	def __init__(self):
-		''' Sets up the initial game board, with the player at a set position.
-			Once everything is set up, starts the game.
-		'''
-		pygame.display.set_caption("Scythe's Secrets")
-		self.screen = pygame.display.set_mode((WINWIDTH, WINHEIGHT))
-		self.font = pygame.font.SysFont(None, 48)
-		self.small_font = pygame.font.SysFont(None, 20)
-		self.player = Player(400, 750)
+    """ This class is a basic game.
 
-		# Create all the rooms
-		self.rooms = []
-		self.rooms.append(room.Room1())
-		self.rooms.append(room.Room2())
-		self.current_room = self.rooms[0]
+    This class will load data, create a pyscroll group, a player object.
+    It also reads input and moves the Player around the map.
+    Finally, it uses a pyscroll group to render the map and Player.
+    """
+    filename = get_map(MAP_FILENAME)
+
+    def __init__(self):
+
+        # true while running
+        self.running = False
+
+        # load data from pytmx
+        tmx_data = pytmx.load_pygame(self.filename)
+
+        # setup level geometry with simple pygame rects, loaded from pytmx
+        self.walls = list()
+        for object in tmx_data.objects:
+            self.walls.append(pygame.Rect(
+                object.x, object.y,
+                object.width, object.height))
+
+        # create new data source for pyscroll
+        map_data = pyscroll.data.TiledMapData(tmx_data)
+
+        w, h = screen.get_size()
+
+        # create new renderer (camera)
+        # clamp_camera is used to prevent the map from scrolling past the edge
+        self.map_layer = pyscroll.BufferedRenderer(map_data, (w/2, h/2), clamp_camera=True)
+
+        # pyscroll supports layered rendering.  our map has 3 'under' layers
+        # layers begin with 0, so the layers are 0, 1, and 2.
+        # since we want the sprite to be on top of layer 1, we set the default
+        # layer for sprites as 1
+        self.group = pyscroll.util.PyscrollGroup(map_layer=self.map_layer, default_layer=2)
 		
-		self.clock = pygame.time.Clock()
-		# Create a camera object
-		self.camera = Camera(complex_camera, self.current_room.total_width, self.current_room.total_height)
-		self.message = "Welcome to Scythe's Secrets!"
-		self.display_alert = False
-		self.run()
-		
-	def draw_alert(self):
-		''' Draws the alert box at the top 
-		'''
-		window = pygame.image.load('message window.png').convert()
-		message = self.font.render(self.message, True, WHITE)
-		
-		self.screen.blit(window, (0, 0))
-		self.screen.blit(message, (15, 15))
+        self.player = Player()
 
-	def draw_darkness(self):
-		pass
-		''' Draws the darkness and shadows on the board. 0 is dark, 1 is in shadows,
-	    	    2 is fully revealed.
-		
-		for row in range(ROWS):
-			for col in range(COLUMNS):
-				if self.map.cleared[row][col] == 0:
-					pygame.draw.rect(self.screen, BLACK, (row*TILE_SIZE, col*TILE_SIZE, TILE_SIZE, TILE_SIZE)) 	
-				if self.map.cleared[row][col] == 1:
-					shadow = pygame.Surface((TILE_SIZE, TILE_SIZE))
-					shadow.set_alpha(200)
-					shadow.fill(BLACK)
-					self.screen.blit(shadow, (row*TILE_SIZE, col*TILE_SIZE))
-		'''
+        # put the player in the center of the map
+        self.player.position = self.map_layer.rect.center
 
-		
-	def draw_floor(self):
-		for i in self.current_room.floor_list:
-			self.screen.blit(i.image, self.camera.apply(i))
-		
-	def draw_walls(self):
-		for i in self.current_room.wall_list:
-			self.screen.blit(i.image, self.camera.apply(i))
-		
-	def run(self):
-		pygame.init()
+        # add our player to the group
+        self.group.add(self.player)
 
-		# Because the Surface object stored in DISPLAYSURF was returned
-		# from the pygame.display.set_mode() function, this is the
-		# Surface object that is drawn to the actual computer screen
-		# when pygame.display.update() is called.
-		DISPLAYSURF = self.screen
-		
-		# Set the title of the window
-		pygame.display.set_caption("Scythe's Secrets")
-		BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
+    def draw(self, surface):
 
-		# Create the player object and set starting location
-		player = Player(400, 750)
+        # center the map/screen on our Player
+        self.group.center(self.player.rect.center)
 
-		movingsprites = pygame.sprite.Group()
-		movingsprites.add(player)
-		
-		# Build the current room
-		self.current_room.build_room()
-		
-		done = False
-		
-		while not done:
+        # draw the map and all sprites
+        self.group.draw(surface)
 
-			# --- Event Processing ---
-			
-			for event in pygame.event.get():
-				# Player clicked the "X" at the corner of the window.
-				if event.type == pygame.QUIT:
-					sys.exit()
+    def handle_input(self):
+        """ Handle pygame input events
+        """
+        event = pygame.event.poll()
+        while event:
+            if event.type == QUIT:
+                self.running = False
+                break
 
-				if event.type == pygame.KEYDOWN:
-					if event.key == pygame.K_LEFT:
-						player.go_left()
-					if event.key == pygame.K_RIGHT:
-						player.go_right()
-					if event.key == pygame.K_UP:
-						player.go_up()
-					if event.key == pygame.K_DOWN:
-						player.go_down()
+            elif event.type == KEYDOWN:
+                if event.key == K_ESCAPE:
+                    self.running = False
+                    break
 
-					# Player abilities, still being debugged	
-					if event.key == pygame.K_a:
-						player.build_skill(self.current_room)
-					
-					if event.key == pygame.K_s:
-						self.message = "This is a sample dialog box!"
+            # this will be handled if the window is resized
+            elif event.type == VIDEORESIZE:
+                init_screen(event.w, event.h)
+                self.map_layer.set_size((event.w / 2, event.h / 2))
 
-					if event.key == pygame.K_d:
-						if self.display_alert == False:
-							self.display_alert = True
-						else:
-							self.display_alert = False
-						
-					if event.key == pygame.K_f:
-						player.paint_skill(self.current_room, DISPLAYSURF)
-							
-				if event.type == pygame.KEYUP:
-					if event.key == pygame.K_LEFT and player.change_x < 0:
-						player.change_x = 0
-					if event.key == pygame.K_RIGHT and player.change_x > 0:
-						player.change_x = 0
-					if event.key == pygame.K_UP and player.change_y < 0:
-						player.change_y = 0
-					if event.key == pygame.K_DOWN and player.change_y > 0:
-						player.change_y = 0
+            event = pygame.event.poll()
 
-			# --- Game Logic ---
+        # using get_pressed is slightly less accurate than testing for events
+        # but is much easier to use.
+        pressed = pygame.key.get_pressed()
+        if pressed[K_UP]:
+            self.player.velocity[1] = -PLAYER_MOVE_SPEED
+            self.player.direction = "U"
+        elif pressed[K_DOWN]:
+            self.player.velocity[1] = PLAYER_MOVE_SPEED
+            self.player.direction = "D"
+        else:
+            self.player.velocity[1] = 0
 
-			player.move(self.current_room)	
-			self.camera.update(player) # Update camera
+        if pressed[K_LEFT]:
+            self.player.velocity[0] = -PLAYER_MOVE_SPEED
+            self.player.direction = "L"
+        elif pressed[K_RIGHT]:
+            self.player.velocity[0] = PLAYER_MOVE_SPEED
+            self.player.direction = "R"
+        else:
+            self.player.velocity[0] = 0
 
-			'''
-			# If the player gets to the edge of the room, go to the next room
-			if self.current_room == self.rooms[1] and player.rect.y < 0:
-				# empty the sprite groups
-				self.current_room.wall_list.empty()
-				self.current_room.floor_list.empty()
-				# change room and build it
-				self.current_room = self.rooms[0]
-				self.current_room.build_room()
-				self.camera = Camera(complex_camera, self.current_room.total_width, self.current_room.total_height)		
-				# set player location on the new map
-				player.rect.x = self.current_room.total_width // 2
-				player.rect.y = self.current_room.total_height-5
+    def update(self, dt):
+        """ Tasks that occur over time should be handled here
+        """
+        self.group.update(dt)
 
-			if player.rect.y > self.current_room.total_height:
-				# empty the sprite groups
-				self.current_room.wall_list.empty()
-				self.current_room.floor_list.empty()
-				# change room and build it
-				self.current_room = self.rooms[1]
-				self.current_room.build_room()
-				self.camera = Camera(complex_camera, self.current_room.total_width, self.current_room.total_height)		
-				# set player location on the new map
-				player.rect.x = self.current_room.total_width // 2
-				player.rect.y = 5
-			'''
-				
-			# --- Drawing ---		
+        # check if the sprite's feet are colliding with wall
+        # sprite must have a rect called feet, and move_back method,
+        # otherwise this will fail
+        for sprite in self.group.sprites():
+            if sprite.feet.collidelist(self.walls) > -1:
+                sprite.move_back(dt)
 
-			self.draw_floor()
+    def run(self):
+        """ Run the game loop
+        """
+        clock = pygame.time.Clock()
+        fps = 60
+        scale = pygame.transform.scale
+        self.running = True
 
-			for e in movingsprites:
-				DISPLAYSURF.blit(e.image, self.camera.apply(e))			
+        try:
+            while self.running:
+                dt = clock.tick(fps) / 1000.
 
-			self.draw_walls()	
-				
-			if self.current_room.loose_block_list:
-				for e in self.current_room.loose_block_list:
-					DISPLAYSURF.blit(e.image, self.camera.apply(e))		
+                self.handle_input()
+                self.update(dt)
+                self.draw(temp_surface)
+                scale(temp_surface, screen.get_size(), screen)
+                pygame.display.flip()
 
-			if player.skillsprites:
-				now = pygame.time.get_ticks()
-				if now - player.last_skill_use >= player.skill_cooldown:
-					for e in player.skillsprites:
-						e.kill()
-				for e in player.skillsprites:
-					DISPLAYSURF.blit(e.image, self.camera.apply(e))					
-				
-			if self.display_alert == True:
-				self.draw_alert()
-				
-			pygame.display.update() # redraw DISPLAYSURF to the screen.
+        except KeyboardInterrupt:
+            self.running = False
 
-			self.clock.tick(FPS)
-		
-	
-class Camera(object):
-    def __init__(self, camera_func, width, height):
-        self.camera_func = camera_func
-        self.state = pygame.Rect(0, 0, width, height)
-
-    def apply(self, target):
-        return target.rect.move(self.state.topleft)
-
-    def update(self, target):
-        self.state = self.camera_func(self.state, target.rect)
-
-def simple_camera(camera, target_rect):
-    l, t, _, _ = target_rect
-    _, _, w, h = camera
-    return pygame.Rect(-l+HALF_WINWIDTH, -t+HALF_WINHEIGHT, w, h)
-
-def complex_camera(camera, target_rect):
-    l, t, _, _ = target_rect
-    _, _, w, h = camera
-    l, t, _, _ = -l+HALF_WINWIDTH, -t+HALF_WINHEIGHT, w, h
-
-    l = min(0, l)                           # stop scrolling at the left edge
-    l = max(-(camera.width-WINWIDTH), l)    # stop scrolling at the right edge
-    t = max(-(camera.height-WINHEIGHT), t)  # stop scrolling at the bottom
-    t = min(0, t)                           # stop scrolling at the top
-    return pygame.Rect(l, t, w, h)
-	
-def main():
-	while 1:
-		pygame.init()
-		game = Game()
 
 if __name__ == "__main__":
-    main()
+    pygame.init()
+    screen = init_screen(800, 600)
+    pygame.display.set_caption("Scythe's Secrets")
+
+    try:
+        game = Game()
+        game.run()
+    except:
+        pygame.quit()
+        raise
