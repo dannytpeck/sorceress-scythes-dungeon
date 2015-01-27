@@ -1,10 +1,8 @@
-Scythe's Secrets
+# Scythe's Secrets
 By Danny Peck(dannytpeck@gmail.com)
 https://github.com/dannytpeck/scythes-secrets
 
-=========
-Libraries
-=========
+# Libraries
 PyTMX
 By Bitcraft
 https://github.com/bitcraft/pytmx
@@ -13,9 +11,7 @@ Pyscroll
 By Bitcraft
 https://github.com/bitcraft/pyscroll
 
-========
-Tilesets
-========
+# Tilesets
 Revolution Grasslands, Snow, and Town
 By Fabio
 http://www.revolutionresources.co.uk
