@@ -1,11 +1,9 @@
 # Scythe's Secrets
-
 A dungeon crawling game made with Python 2.7 and Pygame 1.9
 
 I'm learning Pygame as I go along, so expect frequent updates!
 
 # Introduction
-
 In the not-so distant past, in the land of Symphonetta, there was a powerful Sorceress named Scythe. 
 
 Scythe was clever and strong and knew many powerful magics. She was known in many countries and famously had tamed the Dread Dragon Integra. And she was wise, too, for she knew that her power was coveted by the leaders and monarchs of the countries surrounding her own tiny homeland. It was only a matter of time before they would attack her homeland and ransack the peaceful towns there, hoping to weaken her power or steal some of it for themselves. 
