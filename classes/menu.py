@@ -74,7 +74,7 @@ class Menu():
                     if event.key == K_RETURN:
                         if self.get_selection() == 0:
                             print "Start New Game"
-                            intro()						
+                            self.intro()						
                         if self.get_selection() == 1:
                             print "Load Saved Game"
                             #if no saved games found:
@@ -98,7 +98,43 @@ class Menu():
             clock.tick(FPS)		
             
             pygame.display.flip()               
+
+    def intro(self):
+        """ Display the scrolling text intro """
         
+        x = 0
+        y = self.screen.get_height()
+        
+        clock = pygame.time.Clock()
+
+        # Load and set up graphics.
+        intro_text_image = load_image("intro.png")
+        intro_text_image.set_colorkey(WHITE)
+
+        done = False
+        
+        while not done:
+            for event in pygame.event.get(): # User did something
+                if event.type == QUIT: # If user clicked close
+                    sys.quit()
+                
+                if event.type == KEYDOWN:
+                    if event.key == K_RETURN:
+                        done = True
+                    if event.key == K_ESCAPE:
+                        done = True
+
+            self.screen.fill(WHITE) # Draw white background
+
+            self.screen.blit(intro_text_image, [x,y]) 
+            # text crawls upward
+            y -= 1
+            
+            FPS = 30
+            clock.tick(FPS)		
+            pygame.display.flip()
+
+
     def get_selection(self):
         return self.item_selection
 		
@@ -118,7 +154,7 @@ class Menu():
         screen_height = self.screen.get_height()
 		
         # Menu background
-        square = pygame.Surface([400, 325 ])
+        square = pygame.Surface([400, 325])
         square.fill(self.background_color)
         self.screen.blit(square, [screen_width / 4, screen_height / 4])        
 
@@ -155,34 +191,36 @@ class Menu():
         
 		
 class Display():
-	""" This class is for the HUD stuff """	
-	background_color = (51, 51, 51)
-	text_color = (255, 255, 153)
+    """ This class is for the HUD stuff """	
+    background_color = (51, 51, 51)
+    text_color = (255, 255, 153)
 	
-	def __init__(self, screen):
-		""" Constructor function """
-		self.screen = screen
+    def __init__(self, screen):
+        """ Constructor function """
+        self.screen = screen
 
-	def draw_text(self, text_list, screen):
-		f = pygame.font.Font(None, 32)
+    def draw_text(self, text_list, screen):
+        f = pygame.font.Font(None, 32)
 
-		# save the rendered text
-		self.text_overlay = [f.render(i, 1, self.text_color) for i in text_list]		
+        # save the rendered text
+        self.text_overlay = [f.render(i, 1, self.text_color) for i in text_list]		
 		
-		y = 0
-		for text in self.text_overlay:
-			screen.blit(text, (self.margin*2, self.margin*2+y))
-			y += text.get_height()		
+        y = 0
+        for text in self.text_overlay:
+            screen.blit(text, (self.margin*2, self.margin*2+y))
+            y += text.get_height()		
 		
-	def dialog_box(self, dialog, screen):
-		""" Pop up a dialogue box on the screen """
-		self.margin = 10
+    def dialog_box(self, dialog, screen):
+        """ Pop up a dialogue box on the screen """
+        self.margin = 10
+        screen_width  = self.screen.get_width()
+        screen_height = self.screen.get_height()
 		
-		clock = pygame.time.Clock()	
+        clock = pygame.time.Clock()	
 		
-		done = False
+        done = False
 		
-		while not done:
+        while not done:
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT: 
 					done = True 
@@ -205,49 +243,9 @@ class Display():
 				
 			# 60 fps
 			clock.tick(60)		
-			pygame.display.flip()
-			
+			pygame.display.flip()	
 	
-def intro():
-    """ Display the scrolling text intro """
-    screen = pygame.display.set_mode([screen_width, screen_height])	
 
-    x = 0
-    y = 700	
-	
-    clock = pygame.time.Clock()
-
-    # Load and set up graphics.
-    intro_text_image = load_image("intro.png")
-    intro_text_image.set_colorkey(WHITE)
-
-    done = False
-	
-    while not done:
-        for event in pygame.event.get(): # User did something
-            if event.type == pygame.QUIT: # If user clicked close
-                done = True # Flag that we are done so we exit this loop
-			
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
-                    done = True
-                    #game.main()
-                if event.key == pygame.K_ESCAPE:
-                    done = True
-                    #game.main()
-
-        screen.fill(WHITE) # Draw white background
-
-        screen.blit(intro_text_image, [x, y])	
-		
-        # text crawls upward
-        y -= 1
-		
-        FPS = 30
-        clock.tick(FPS)		
-        pygame.display.flip()
-		
-	
 if __name__ == "__main__":
     main()
 	
