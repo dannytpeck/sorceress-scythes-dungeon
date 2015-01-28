@@ -34,17 +34,87 @@ def get_map(filename):
 def load_image(filename):
     return pygame.image.load(os.path.join(RESOURCES_DIR, filename))
 
-class Darkness(pygame.sprite.Sprite):
-    ''' Darkness object that conceals most of the dungeon from the player '''
+class Display(pygame.sprite.Sprite):
+    ''' Display UI '''
+    
+    def __init__(self, screen):
+        pygame.sprite.Sprite.__init__(self)
+
+        w, h = screen.get_size()
+        
+        self.image = load_image("ui base.png")
+        #self.image.convert_alpha()
+        #self.image.set_alpha(192)
+        self.rect = self.image.get_rect()
+        self.rect.center = [w/2-100,h/2-25]
+               
+    def update(self): 
+        w, h = screen.get_size()
+        self.rect.center = [w/2-100,h/2-25]
+
+class Portrait(pygame.sprite.Sprite):
+    ''' Portrait UI Display '''
     
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-
-        self.image = load_image("darkness.png")
-        self.image.convert_alpha()
-        self.image.set_alpha(192)
-        self.rect = self.image.get_rect()
         
+        w, h = screen.get_size()
+
+        self.image = load_image("portrait-main.png")
+        self.rect = self.image.get_rect()
+        self.rect.center = [75,h/2-100]
+
+    def update(self): 
+        w, h = screen.get_size()
+        self.rect.center = [75,h/2-100]    
+
+class FirstAllyPortrait(pygame.sprite.Sprite):
+    ''' First Ally Portrait UI Display '''
+    
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        
+        w, h = screen.get_size()
+
+        self.image = load_image("portrait-1.png")
+        self.rect = self.image.get_rect()
+        self.rect.center = [25,h/2-50]
+
+    def update(self): 
+        w, h = screen.get_size()
+        self.rect.center = [25,h/2-50]    
+        
+class SecondAllyPortrait(pygame.sprite.Sprite):
+    ''' Second Ally Portrait UI Display '''
+    
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        
+        w, h = screen.get_size()
+
+        self.image = load_image("portrait-2.png")
+        self.rect = self.image.get_rect()
+        self.rect.center = [75,h/2-50]
+
+    def update(self): 
+        w, h = screen.get_size()
+        self.rect.center = [75,h/2-50]            
+
+class ThirdAllyPortrait(pygame.sprite.Sprite):
+    ''' Third Ally Portrait UI Display '''
+    
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        
+        w, h = screen.get_size()
+
+        self.image = load_image("portrait-3.png")
+        self.rect = self.image.get_rect()
+        self.rect.center = [125,h/2-50]
+
+    def update(self): 
+        w, h = screen.get_size()
+        self.rect.center = [125,h/2-50]            
         
 class Player(pygame.sprite.Sprite):
     """ Our Player Character
@@ -69,14 +139,16 @@ class Player(pygame.sprite.Sprite):
         self.velocity = [0, 0]
         self._position = [0, 0]
         self._old_position = self.position
+        
         # This holds the walk animation images for the player.
         self.walking_frames_l = []
         self.walking_frames_r = []
         self.walking_frames_u = []
-        self.walking_frames_d = []	
+        self.walking_frames_d = []
+        
         # Player facing direction defaults to right.
         self.direction = "R"
-    
+
         # Choose a sprite sheet to use
         sprite_sheet = spritesheet.SpriteSheet("player.png")
 
@@ -191,12 +263,10 @@ class Game(object):
         # load data from pytmx
         tmx_data = pytmx.load_pygame(self.filename)
 
-        # setup level geometry with simple pygame rects, loaded from pytmx
+        # set up level geometry with simple pygame rects, loaded from pytmx
         self.walls = list()
         for object in tmx_data.objects:
-            self.walls.append(pygame.Rect(
-                object.x, object.y,
-                object.width, object.height))
+            self.walls.append(pygame.Rect(object.x, object.y, object.width, object.height))
 
     # create new data source for pyscroll
         map_data = pyscroll.data.TiledMapData(tmx_data)
@@ -212,21 +282,26 @@ class Game(object):
         # since we want the sprite to be on top of layer 1, we set the default
         # layer for sprites as 1
         self.group = pyscroll.util.PyscrollGroup(map_layer=self.map_layer, default_layer=1)
-        self.darkness_group = pygame.sprite.Group()
+        self.ui_group = pygame.sprite.Group()
 		
         self.player = Player()    
+        self.display = Display(screen)
+        self.portrait = Portrait()
         
-        # make darkness object
-        self.darkness = Darkness()
+        self.firstportrait = FirstAllyPortrait()
+        self.secondportrait = SecondAllyPortrait()
+        self.thirdportrait = ThirdAllyPortrait()
         
         # put the player in the center of the map
         self.player.position = self.map_layer.rect.center
-
+        
         # add our player to the group
         self.group.add(self.player)
-        # add darkness object to the group
-        self.darkness_group.add(self.darkness)
-        
+        self.ui_group.add(self.display)
+        self.ui_group.add(self.portrait)
+        self.ui_group.add(self.firstportrait)
+        self.ui_group.add(self.secondportrait)
+        self.ui_group.add(self.thirdportrait)
         
     def draw(self, surface):  
         # center the map/screen on our Player
@@ -234,7 +309,7 @@ class Game(object):
         
         # draw the map and all sprites
         self.group.draw(surface)
-        self.darkness_group.draw(surface)
+        self.ui_group.draw(surface)
 
     def handle_input(self):
         """ Handle pygame input events
@@ -246,34 +321,35 @@ class Game(object):
                 break
 
             if event.type == KEYDOWN:	
-				if event.key == K_UP:
-					self.player.velocity[1] = -PLAYER_MOVE_SPEED
-					self.player.direction = "U"
-				if event.key == K_DOWN:
-					self.player.velocity[1] = PLAYER_MOVE_SPEED
-					self.player.direction = "D"
-				if event.key == K_LEFT:
-					self.player.velocity[0] = -PLAYER_MOVE_SPEED
-					self.player.direction = "L"
-				if event.key == K_RIGHT:
-					self.player.velocity[0] = PLAYER_MOVE_SPEED
-					self.player.direction = "R"
-
+                if event.key == K_UP:
+                    self.player.velocity[1] = -PLAYER_MOVE_SPEED
+                    self.player.direction = "U"
+                if event.key == K_DOWN:
+                    self.player.velocity[1] = PLAYER_MOVE_SPEED
+                    self.player.direction = "D"
+                if event.key == K_LEFT:
+                    self.player.velocity[0] = -PLAYER_MOVE_SPEED
+                    self.player.direction = "L"
+                if event.key == K_RIGHT:
+                    self.player.velocity[0] = PLAYER_MOVE_SPEED
+                    self.player.direction = "R"
+                    
             if event.type == KEYUP:
-				if event.key == pygame.K_LEFT and self.player.velocity[0] < 0:
-					self.player.velocity[0] = 0
-				if event.key == pygame.K_RIGHT and self.player.velocity[0] > 0:
-					self.player.velocity[0] = 0
-				if event.key == pygame.K_UP and self.player.velocity[1] < 0:
-					self.player.velocity[1] = 0
-				if event.key == pygame.K_DOWN and self.player.velocity[1] > 0:
-					self.player.velocity[1] = 0
-					
+                if event.key == pygame.K_LEFT and self.player.velocity[0] < 0:
+                    self.player.velocity[0] = 0
+                if event.key == pygame.K_RIGHT and self.player.velocity[0] > 0:
+                    self.player.velocity[0] = 0
+                if event.key == pygame.K_UP and self.player.velocity[1] < 0:
+                    self.player.velocity[1] = 0
+                if event.key == pygame.K_DOWN and self.player.velocity[1] > 0:
+                    self.player.velocity[1] = 0
+                
             # this will be handled if the window is resized
             elif event.type == VIDEORESIZE:
                 init_screen(event.w, event.h)
                 self.map_layer.set_size((event.w / 2, event.h / 2))
-
+                self.ui_group.update()
+                
             event = pygame.event.poll()
 			
     def update(self, dt):
