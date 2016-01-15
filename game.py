@@ -281,7 +281,7 @@ class Game(object):
         # layers begin with 0, so the layers are 0, 1, and 2.
         # since we want the sprite to be on top of layer 1, we set the default
         # layer for sprites as 1
-        self.group = pyscroll.util.PyscrollGroup(map_layer=self.map_layer, default_layer=1)
+        self.group = pyscroll.PyscrollGroup(map_layer=self.map_layer, default_layer=1)
         self.ui_group = pygame.sprite.Group()
 		
         self.player = Player()    
@@ -292,9 +292,9 @@ class Game(object):
         self.secondportrait = SecondAllyPortrait()
         self.thirdportrait = ThirdAllyPortrait()
         
-        # put the player in the center of the map
-        self.player.position = self.map_layer.rect.center
-        
+        # set the player's starting x/y location  
+        self.player.position = (200, 200)
+
         # add our player to the group
         self.group.add(self.player)
         self.ui_group.add(self.display)

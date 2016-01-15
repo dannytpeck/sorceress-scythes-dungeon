@@ -73,20 +73,20 @@ class Menu():
                         self.change_selection(1)
                     if event.key == K_RETURN:
                         if self.get_selection() == 0:
-                            print "Start New Game"
-                            self.intro()						
+                            print("Start New Game")
+                            self.intro()
                         if self.get_selection() == 1:
-                            print "Load Saved Game"
+                            print("Load Saved Game")
                             #if no saved games found:
                             display.dialog_box(["No save file found."], self.screen)
                         if self.get_selection() == 2:
-                            print "Options & Controls"
+                            print("Options & Controls")
                             #self.options()
                         if self.get_selection() == 3:
-                            print "Credits"
+                            print("Credits")
                             #self.credits()
                         if self.get_selection() == 4:
-                            print "Quit"
+                            print("Quit")
                             sys.exit()
                     if event.key == K_ESCAPE:
                         done = True                      
@@ -221,29 +221,29 @@ class Display():
         done = False
 		
         while not done:
-			for event in pygame.event.get():
-				if event.type == pygame.QUIT: 
-					done = True 
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT: 
+                    done = True 
 			
-				if event.type == pygame.KEYDOWN:
-					if event.key == pygame.K_RETURN:
-						done = True					
-					if event.key == pygame.K_ESCAPE:
-						done = True
-					if event.key == pygame.K_a:
-						done = True
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:
+                        done = True					
+                    if event.key == pygame.K_ESCAPE:
+                        done = True
+                    if event.key == pygame.K_a:
+                        done = True
 						
 			# Make the box
-			square = pygame.Surface([screen_width - self.margin * 2, 130])
-			square.fill(self.background_color)
-			screen.blit(square, [self.margin, self.margin])
+            square = pygame.Surface([screen_width - self.margin * 2, 130])
+            square.fill(self.background_color)
+            screen.blit(square, [self.margin, self.margin])
 
-			self.draw_text(dialog, screen)
+            self.draw_text(dialog, screen)
 			#self.draw_text(["This is line one of the text box", "and this is line two."], screen)
 				
 			# 60 fps
-			clock.tick(60)		
-			pygame.display.flip()	
+            clock.tick(60)		
+            pygame.display.flip()	
 	
 
 if __name__ == "__main__":
